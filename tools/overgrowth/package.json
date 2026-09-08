@@ -1,0 +1,5 @@
+{
+  "name": "ralgo-overgrowth-recovery",
+  "private": true,
+  "dependencies": {"@napi-rs/canvas": "0.1.100"}
+}

@@ -8,8 +8,73 @@
   "tokenId": "1141945",
   "contract": "KT1U6EHmNxJTkvaWJ4ThczG4FSDaHC21ssvi",
   "generationHash": "onu9Y1WLiqp9bsgfjwQ9VpRC7wE7xJCRr9GC1TQGG2jv9TKkWoV",
-  "capture": {"mode": "CANVAS", "triggerMode": "FN_TRIGGER", "gpu": false, "canvasSelector": "canvas"},
+  "capture": {
+    "mode": "CANVAS",
+    "triggerMode": "FN_TRIGGER",
+    "gpu": false,
+    "canvasSelector": "canvas"
+  },
   "source": "Official fxhash generativeToken(19030) metadata and entireCollection, retrieved 2026-09-07",
-  "status": "Generator source required. The fxhash gateway reports unavailable; alternate IPFS downloads were blocked on 2026-09-08. No replacement artwork has been generated.",
-  "nextStep": "Use the original 2022 p5.js generator with this fxhash parameter, capture its completed canvas, compare a known edition against its existing preview, then replace website/artworks/overgrowth/5.webp and remove previewStatus and previewNote for edition 5."
+  "status": "Recovered from the artist-supplied sketch and the recorded edition hash. Seed and composition verified; CPU rasterization differs slightly from the historical WebGL capture.",
+  "recovery": {
+    "date": "2026-09-08",
+    "sketch": "tools/overgrowth/sketch.js",
+    "renderer": "tools/overgrowth/render.cjs",
+    "canvasDependency": "@napi-rs/canvas 0.1.100",
+    "seed": 75050426,
+    "frames": 179,
+    "features": {
+      "Background": "White",
+      "Iterations": 110,
+      "White Stroke Width": 2.4,
+      "Black Stroke Width": 2.4
+    },
+    "dimensions": [
+      2400,
+      2400
+    ],
+    "sketchSha256": "75f451ea2018ccb131d84c9305eb9a47eeca82586371576106c095abf5ff1dc1",
+    "renderPngSha256": "f56e4e0d98295b677d3f59dbc8b3e3c93200985a76601239ad881d4a87c3305c",
+    "supersededSourceImages": {
+      "image": "https://gateway.fxhash.xyz/ipfs/QmYwSwa5hP4346GqD7hAjutwJSmeYTdiLQ7Wec2C7Cez1D",
+      "thumbnail": "https://gateway.fxhash.xyz/ipfs/QmbvEAn7FLMeYBDroYwBP8qWc3d3VVWbk19tTB83LCMB5S",
+      "original": "https://gateway.fxhash.xyz/ipfs/QmYwSwa5hP4346GqD7hAjutwJSmeYTdiLQ7Wec2C7Cez1D"
+    },
+    "assets": [
+      {
+        "path": "website/artworks/overgrowth/5.webp",
+        "bytes": 168486,
+        "sha256": "a7b439be7f4f547d2da96dc25f5948e018d5a712c463fb93d09dcd43cf62eb19"
+      },
+      {
+        "path": "website/artworks/overgrowth/5-full.webp",
+        "bytes": 1719652,
+        "sha256": "212ceb88866ea57efce3c997068b5f38875100726e502bbf16b92e76de7e4f66"
+      }
+    ],
+    "validation": {
+      "recordedFeatureSetsMatched": 90,
+      "featuresPerEdition": 4,
+      "compositionComparisons": [
+        {
+          "edition": 1,
+          "renderSize": 600,
+          "referenceSize": 300,
+          "grayscalePixelCorrelation": 0.9807267897213097,
+          "grayscaleMeanAbsoluteError": 12.182266666666667,
+          "correlationAfterOnePixelGaussianBlur": 0.9967778250297067
+        },
+        {
+          "edition": 3,
+          "renderSize": 600,
+          "referenceSize": 300,
+          "grayscalePixelCorrelation": 0.9774743657995993,
+          "grayscaleMeanAbsoluteError": 13.0557,
+          "correlationAfterOnePixelGaussianBlur": 0.9963661263601631
+        }
+      ],
+      "visualReview": "Branches, folds, negative space and background agree for both comparison editions. Edge coverage and fine texture differ with rasterization. Existing reference previews were retained.",
+      "reusableRendererCheck": "Edition #3 at 600px produces the same PNG SHA-256 as the comparison harness: 3b38f5453e5bbba71d9f269e58f9b8fc7cfe24a44f0e682289e8ffe6f40f8c07"
+    }
+  }
 }

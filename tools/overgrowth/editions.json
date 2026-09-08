@@ -1,0 +1,1056 @@
+{
+  "projectId": 19030,
+  "source": "Official fxhash generativeToken(19030).entireCollection, retrieved 2026-09-07",
+  "editions": [
+    {
+      "number": 1,
+      "tokenId": 1141936,
+      "generationHash": "opWoyQWmctu29DPqTDcw3ZJRctL4LE1YiqyWnFawUbayA37aizT",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 90,
+        "White Stroke Width": 2,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 2,
+      "tokenId": 1141938,
+      "generationHash": "opa2wXfBxyKrampcGKSoqZJhy2S9cYRDEBVfrkoqFitWimsP5qU",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 90,
+        "White Stroke Width": 2.4,
+        "Black Stroke Width": 1.6
+      }
+    },
+    {
+      "number": 3,
+      "tokenId": 1141943,
+      "generationHash": "oo5FZDhER3XEvQaGMLdSbXkGwTxFPtAi1XMyLiQgvrG3nuUWQt3",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 80,
+        "White Stroke Width": 1.6,
+        "Black Stroke Width": 1.6
+      }
+    },
+    {
+      "number": 4,
+      "tokenId": 1141944,
+      "generationHash": "onx5gQiVFU39TZqPXbesFShUXWGosaeiodDtUJ7Ymm5fS77fp2J",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 80,
+        "White Stroke Width": 2.4,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 5,
+      "tokenId": 1141945,
+      "generationHash": "onu9Y1WLiqp9bsgfjwQ9VpRC7wE7xJCRr9GC1TQGG2jv9TKkWoV",
+      "recordedFeatures": null
+    },
+    {
+      "number": 6,
+      "tokenId": 1141946,
+      "generationHash": "opKBU8dnRMRtN6xMcykzfWD9reAePAyC7SfmjqabMwFAuNgug2t",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 100,
+        "White Stroke Width": 2.4,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 7,
+      "tokenId": 1141957,
+      "generationHash": "opRkGt5tGHCNbhoTaSYLtfbfJoW1cxwwsyHf2bADX3zUH9Jtups",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 90,
+        "White Stroke Width": 2.4,
+        "Black Stroke Width": 2.4
+      }
+    },
+    {
+      "number": 8,
+      "tokenId": 1141958,
+      "generationHash": "ooMXLUMESiAZjvmjLUGovLXM2ri3KUAssjWhhJRhsBDmVFXfqEK",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 90,
+        "White Stroke Width": 2,
+        "Black Stroke Width": 1.6
+      }
+    },
+    {
+      "number": 9,
+      "tokenId": 1141960,
+      "generationHash": "opKFYdZoLyiFDdNu2Gx2rtQRHa9SSHbFxcNGydouSW5soatps7g",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 70,
+        "White Stroke Width": 1.6,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 10,
+      "tokenId": 1141970,
+      "generationHash": "ooWxvTthEjgzFSpSJpBCf8Bxxj8Xt5uNb8RjqnxLhu5Cvu8iPqS",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 90,
+        "White Stroke Width": 1.6,
+        "Black Stroke Width": 1.2
+      }
+    },
+    {
+      "number": 11,
+      "tokenId": 1141971,
+      "generationHash": "onnxdaCQm1d4hsPi8rN7SakMuzWycXezpBivpY5KwTwJZjk2FSS",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 70,
+        "White Stroke Width": 2,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 12,
+      "tokenId": 1141972,
+      "generationHash": "onh4WwbprThTfY2HPpMLaof2iiZSvapBKywgFycTViSGVF34tc6",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 80,
+        "White Stroke Width": 2.4,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 13,
+      "tokenId": 1141974,
+      "generationHash": "oo9nXUCqnS7JRLPCShn22x1ufRyEpdfzPG4fiYtKvzEipU7tGW2",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 100,
+        "White Stroke Width": 2,
+        "Black Stroke Width": 1.6
+      }
+    },
+    {
+      "number": 14,
+      "tokenId": 1141975,
+      "generationHash": "ooKAQZat9iT3vireswUAhqxUVU48BgTYPKQve1ov7cbebTsKcer",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 80,
+        "White Stroke Width": 2,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 15,
+      "tokenId": 1141976,
+      "generationHash": "oo83ZeAGaztBANXhpCdnooKERJKA9sYwZFveB8JpLf2yeTbkA7L",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 70,
+        "White Stroke Width": 1.6,
+        "Black Stroke Width": 1.6
+      }
+    },
+    {
+      "number": 16,
+      "tokenId": 1141977,
+      "generationHash": "ooYZDPbDogNg31mYu8VRFCSjoUUQZvQgpnFeEgFXGZTAF8KgzHj",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 100,
+        "White Stroke Width": 1.6,
+        "Black Stroke Width": 1.2
+      }
+    },
+    {
+      "number": 17,
+      "tokenId": 1141979,
+      "generationHash": "opQ2A29bL5xh59mJ4sMSyYNYb2DbNzLiHwhZ67APNYRuxPB6K4Z",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 100,
+        "White Stroke Width": 1.2,
+        "Black Stroke Width": 2.8
+      }
+    },
+    {
+      "number": 18,
+      "tokenId": 1141980,
+      "generationHash": "onnv65Q1xRJbxASHxy4jfi1ttyz2XhumcKoZHhJCW6VbLcvsu3w",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 100,
+        "White Stroke Width": 2.4,
+        "Black Stroke Width": 2.8
+      }
+    },
+    {
+      "number": 19,
+      "tokenId": 1141981,
+      "generationHash": "opJFZytnnEudR2wA8xwdmsfHq7waP1VeMyJn7WAy1V5ac43nE8i",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 100,
+        "White Stroke Width": 2.8,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 20,
+      "tokenId": 1141982,
+      "generationHash": "oo8zFnCBUZjvK9rJ4yomhiYE9PMXHtmxyNobcYE5TyWxYiwHAy8",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 80,
+        "White Stroke Width": 1.2,
+        "Black Stroke Width": 2.4
+      }
+    },
+    {
+      "number": 21,
+      "tokenId": 1141983,
+      "generationHash": "ontVRMPU4piozyYo3XJj1cDL7StxLYHvgRiQaasrFdkih4skArC",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 90,
+        "White Stroke Width": 1.6,
+        "Black Stroke Width": 1.6
+      }
+    },
+    {
+      "number": 22,
+      "tokenId": 1141984,
+      "generationHash": "ooH1icQwvFkPcibgYwW7v2CYTX3LpmAR41d7dUchhghw23CBxkR",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 80,
+        "White Stroke Width": 1.6,
+        "Black Stroke Width": 1.6
+      }
+    },
+    {
+      "number": 23,
+      "tokenId": 1141986,
+      "generationHash": "opEbWsarizAD2vtA78bpzQyyrpCtHrhW2v7UuUWtVvMq4rDAPTp",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 80,
+        "White Stroke Width": 1.6,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 24,
+      "tokenId": 1141987,
+      "generationHash": "ooc4AmzDZDuu8EEAHZQGQhYFJiBChWpkPMRo76zAa5vLYeneFec",
+      "recordedFeatures": null
+    },
+    {
+      "number": 25,
+      "tokenId": 1141988,
+      "generationHash": "ooLtkZKXqAhuWrqu8JNhGEYoQkvBuKwZ5KXSQ1MDLAtwKW5VEY7",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 80,
+        "White Stroke Width": 2.4,
+        "Black Stroke Width": 2.4
+      }
+    },
+    {
+      "number": 26,
+      "tokenId": 1141989,
+      "generationHash": "oo2FzV1BNYCmozoT7UeyaoTNnjDDgtQLLiujs5XjdfJpvteSULC",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 90,
+        "White Stroke Width": 2,
+        "Black Stroke Width": 2.8
+      }
+    },
+    {
+      "number": 27,
+      "tokenId": 1141990,
+      "generationHash": "op43n6yrj4rX3EREMQEBTx7VatAor33YTMfwRLp5LStXLFn8drY",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 70,
+        "White Stroke Width": 1.6,
+        "Black Stroke Width": 2.8
+      }
+    },
+    {
+      "number": 28,
+      "tokenId": 1141993,
+      "generationHash": "oom8TR4eMtCfCb2YaexJ4C6mWwqio61CweDAqUWbp97jgGiETjQ",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 90,
+        "White Stroke Width": 1.2,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 29,
+      "tokenId": 1141995,
+      "generationHash": "oo3zDvKaAzAJsbgZk9hCp4ffcRG4fK1w1aVFxHK4vwhouG84DJu",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 90,
+        "White Stroke Width": 2.8,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 30,
+      "tokenId": 1141997,
+      "generationHash": "oo3PHCe3bFd4r2jSV4udMUAjHcgtPeHX45459Uc6ky2MQ1i3xUU",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 70,
+        "White Stroke Width": 2,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 31,
+      "tokenId": 1141998,
+      "generationHash": "ooKoBCvxj3FQPxt8x9fiYH6FrxNzYLyXjh9RSFuEt3pmdCs71ZC",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 70,
+        "White Stroke Width": 1.6,
+        "Black Stroke Width": 2.4
+      }
+    },
+    {
+      "number": 32,
+      "tokenId": 1141999,
+      "generationHash": "ooghUvr1rY3i46vByetCKPpMJK5HpDEyqeL7B8xTPqx5Nr761TP",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 90,
+        "White Stroke Width": 2,
+        "Black Stroke Width": 2.4
+      }
+    },
+    {
+      "number": 33,
+      "tokenId": 1142003,
+      "generationHash": "ooWT543wimsqZKiswBKUquRZn5tGyMch8teixbse7pjPQL5hFYc",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 100,
+        "White Stroke Width": 1.6,
+        "Black Stroke Width": 2.4
+      }
+    },
+    {
+      "number": 34,
+      "tokenId": 1142006,
+      "generationHash": "opMz77rooYEPs24f5TAmZkHiiX8QH9RPaHXFCmRdQrSmSYucfeV",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 90,
+        "White Stroke Width": 1.6,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 35,
+      "tokenId": 1142007,
+      "generationHash": "ooFbvHr3oWAbABV29M2SKDT5c3cFvfSF87v5LahQcHfTdmJ5Eh8",
+      "recordedFeatures": null
+    },
+    {
+      "number": 36,
+      "tokenId": 1142008,
+      "generationHash": "ooREPbiQPNvTJvQ3ztjbAmtgHB4xR4Bs6rVqBS1GewixMPj2WtP",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 80,
+        "White Stroke Width": 2.8,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 37,
+      "tokenId": 1142009,
+      "generationHash": "opU9zJR13t8J1Hq24RBhsUveqw1UfhcAJWwPe2UMYnv4Vjqqt52",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 80,
+        "White Stroke Width": 2,
+        "Black Stroke Width": 1.6
+      }
+    },
+    {
+      "number": 38,
+      "tokenId": 1142010,
+      "generationHash": "oowBrd5XPqeraHiC6Dq3MmVVQkkJVTu4ENSP4MGCbhmLpPEN1R3",
+      "recordedFeatures": null
+    },
+    {
+      "number": 39,
+      "tokenId": 1142014,
+      "generationHash": "ooCs1LDy7zmzsuGwTMABy9mBJ2xEJ9csJp8HSWhEXdmypH1fkVa",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 90,
+        "White Stroke Width": 2,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 40,
+      "tokenId": 1142019,
+      "generationHash": "onwv8dEf4BL9EbtqDN85qAg92VhhxmGiAoTd5vBvSr8RGraGd6j",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 90,
+        "White Stroke Width": 2.4,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 41,
+      "tokenId": 1142022,
+      "generationHash": "oogxCd4wNasrZbuLpxVt2jRTkq1gogsp2Kab4fWBTkM2V8rsz9p",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 110,
+        "White Stroke Width": 2.4,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 42,
+      "tokenId": 1142023,
+      "generationHash": "onoBGuKhsLkmSy72FM9dNkueJH3rSwC6FwfpcZZaqJn8g8mQaYa",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 90,
+        "White Stroke Width": 2.4,
+        "Black Stroke Width": 2.4
+      }
+    },
+    {
+      "number": 43,
+      "tokenId": 1142024,
+      "generationHash": "oovNCPHZhU22mWbwmmtJVpbcMRDX3gScapdkhahD8eoJg8uYAez",
+      "recordedFeatures": null
+    },
+    {
+      "number": 44,
+      "tokenId": 1142025,
+      "generationHash": "onzh9LaSV9DKTcS5vsmzo5AqJSMpej2pieXWsQvq6712T8UGPv5",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 100,
+        "White Stroke Width": 1.6,
+        "Black Stroke Width": 2.4
+      }
+    },
+    {
+      "number": 45,
+      "tokenId": 1142027,
+      "generationHash": "ooECJWVaLPgh4eaAVxyMMvgDJDziWEQu3a63U5WRSJNYPDH1zdx",
+      "recordedFeatures": null
+    },
+    {
+      "number": 46,
+      "tokenId": 1142029,
+      "generationHash": "opUc7yuqrR7ALxiLDiNchDg1H7LbpXixHgTeuF262Q5Jm41tbCb",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 90,
+        "White Stroke Width": 1.6,
+        "Black Stroke Width": 2.4
+      }
+    },
+    {
+      "number": 47,
+      "tokenId": 1142031,
+      "generationHash": "opHAFrnhrkcPv6Css5p5tQ62rJGRjSM3RLpPRx8fLMyfgMP4KWX",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 90,
+        "White Stroke Width": 1.6,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 48,
+      "tokenId": 1142033,
+      "generationHash": "onwHTzi6sHy3ezpCY855zzikDoXFxC8J3oh6DHjFmA3MmGYA8gf",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 70,
+        "White Stroke Width": 1.2,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 49,
+      "tokenId": 1142034,
+      "generationHash": "onta1ShhGLokghoAivaKnrBEPHJ9Pbuse9kG79gY7T4pkTc3Xq2",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 100,
+        "White Stroke Width": 2.8,
+        "Black Stroke Width": 1.2
+      }
+    },
+    {
+      "number": 50,
+      "tokenId": 1142036,
+      "generationHash": "oonvzYd5ZMFfSTDdsDJb55NVnQLjT6HiPcQ88TFQmhpH7CuRxiW",
+      "recordedFeatures": null
+    },
+    {
+      "number": 51,
+      "tokenId": 1142037,
+      "generationHash": "ooHkK93LZG7a2V5i8GPzv53YciWPuxPt4BccZtL3c4cZmuxLPBG",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 80,
+        "White Stroke Width": 1.6,
+        "Black Stroke Width": 1.6
+      }
+    },
+    {
+      "number": 52,
+      "tokenId": 1142038,
+      "generationHash": "ooPVYFLkcsLggX9yLN3L67QwGhmq9mmbkbShB8phnQ7LinnCR9C",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 90,
+        "White Stroke Width": 2,
+        "Black Stroke Width": 2.4
+      }
+    },
+    {
+      "number": 53,
+      "tokenId": 1142039,
+      "generationHash": "onvZ7PqFhruDKEirqXYGdje6MueW7bDrBDkYjF1BMSjWWKpmP86",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 90,
+        "White Stroke Width": 2.8,
+        "Black Stroke Width": 2.4
+      }
+    },
+    {
+      "number": 54,
+      "tokenId": 1142040,
+      "generationHash": "ooYPR4aSfQmCU1HSTStWW6p94fMY4GFQn6pYjW8TWnn4q6RkcU6",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 80,
+        "White Stroke Width": 2,
+        "Black Stroke Width": 1.2
+      }
+    },
+    {
+      "number": 55,
+      "tokenId": 1142041,
+      "generationHash": "ootcnoyddsNfvnV9pGQdnwYJRGb17YxbvoAs59j1Nay5j1EVciT",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 90,
+        "White Stroke Width": 1.6,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 56,
+      "tokenId": 1142042,
+      "generationHash": "opLNot98ka9gY2p5fWR3SdN1iazgAddndBAgenCq4GkdFZyfV2T",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 90,
+        "White Stroke Width": 1.6,
+        "Black Stroke Width": 1.2
+      }
+    },
+    {
+      "number": 57,
+      "tokenId": 1142043,
+      "generationHash": "opJ6HBHncyrPb3DrQkCJGEnyW22J4CiuZvsib8EK3Wy1J9ugWEz",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 100,
+        "White Stroke Width": 1.2,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 58,
+      "tokenId": 1142044,
+      "generationHash": "oowti3XHEsP61fgNuq1CMNxH5Zbr4KF8SaAKyCaaKuJUdm6kqj4",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 80,
+        "White Stroke Width": 2,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 59,
+      "tokenId": 1142045,
+      "generationHash": "oomqDFWECzizXCKHF7SoZ3FXYQLPU6pBtWvEhpeZBpQW5CJunvk",
+      "recordedFeatures": null
+    },
+    {
+      "number": 60,
+      "tokenId": 1142046,
+      "generationHash": "oo52XqYwy8jrUGSW47oxquvsK7rJMgfryY5cbrQwxw1mZvMwGbe",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 90,
+        "White Stroke Width": 2,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 61,
+      "tokenId": 1142047,
+      "generationHash": "ooBJLBfDY4evELVwgFRkGgC3uBYgNbPdJ4c8ZiD8Cgd9vrUpmTf",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 80,
+        "White Stroke Width": 2,
+        "Black Stroke Width": 2.8
+      }
+    },
+    {
+      "number": 62,
+      "tokenId": 1142048,
+      "generationHash": "opPPi5n1U9XoWVgQ8Nhfd47VCPgAVeNVUGJLAiwLAoQuXKj16ML",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 90,
+        "White Stroke Width": 2,
+        "Black Stroke Width": 1.2
+      }
+    },
+    {
+      "number": 63,
+      "tokenId": 1142049,
+      "generationHash": "opUY6A6tZqeDg9p9WLG8MvXMuL96uh9dDyz1iER46croaHtJee5",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 90,
+        "White Stroke Width": 1.6,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 64,
+      "tokenId": 1142050,
+      "generationHash": "oo81SNmsptP5uMaEFE8QSJEV9UyDwdjF2hyHW93pXnnbESnK33z",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 80,
+        "White Stroke Width": 2,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 65,
+      "tokenId": 1142051,
+      "generationHash": "oo8sAN2QKbMYrnoNeezYTT4LDuXXV4ySB1WizNw2rsNffmYDdUY",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 90,
+        "White Stroke Width": 2,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 66,
+      "tokenId": 1142052,
+      "generationHash": "oo8DRmtXaC8mTjuhZPqQvE7g612PUpHGmBsBmXMcojrhLvnUXYG",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 100,
+        "White Stroke Width": 2,
+        "Black Stroke Width": 1.6
+      }
+    },
+    {
+      "number": 67,
+      "tokenId": 1142053,
+      "generationHash": "oovGNPMukDm2yLvkmhPaQxQBB9HboX73UCrdoDFVeyFphffZ2zU",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 70,
+        "White Stroke Width": 1.6,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 68,
+      "tokenId": 1142054,
+      "generationHash": "oojVj6LbuZbws7jTrmESX8EjREuSTsiiq7CDAXtMZNqD25kAc55",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 90,
+        "White Stroke Width": 1.6,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 69,
+      "tokenId": 1142055,
+      "generationHash": "op7TenkMg6MMa9eFY6z2R3d7RnELnJkbLQwGdHYGN2Dc9WeHFbW",
+      "recordedFeatures": null
+    },
+    {
+      "number": 70,
+      "tokenId": 1142056,
+      "generationHash": "oobmFf4tY7wFC1peyfqtWjz4nJJWfBo2M3Eh9G9jw5GJhnkF9eo",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 90,
+        "White Stroke Width": 2,
+        "Black Stroke Width": 1.6
+      }
+    },
+    {
+      "number": 71,
+      "tokenId": 1142058,
+      "generationHash": "ooS5cUvUYDPTiX8qbd2LW5EnDCSeN58cJYsX1JwbRZJ3ooJswbb",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 90,
+        "White Stroke Width": 1.6,
+        "Black Stroke Width": 2.4
+      }
+    },
+    {
+      "number": 72,
+      "tokenId": 1142061,
+      "generationHash": "oobWAJGCWUEEepnvC914coriP5ENAc8QkPqVw7ggnKgyog9M4np",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 80,
+        "White Stroke Width": 2.4,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 73,
+      "tokenId": 1142067,
+      "generationHash": "ongafvC9PRSMkUsCDfdCPtH6Ddg3Zc7i4mrTccbLUESdzG66Bv1",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 100,
+        "White Stroke Width": 2,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 74,
+      "tokenId": 1142071,
+      "generationHash": "op2BhXfV8BdvZywgsbGN4gYDfvjhEmftjpwCnbq7DsMi545cGrU",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 90,
+        "White Stroke Width": 1.6,
+        "Black Stroke Width": 1.6
+      }
+    },
+    {
+      "number": 75,
+      "tokenId": 1142095,
+      "generationHash": "ooCvnPt4pHKFW2tbzbVNPhqS1HUxZ61tki5hmUFzVHe54D7CMpA",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 100,
+        "White Stroke Width": 2,
+        "Black Stroke Width": 2.4
+      }
+    },
+    {
+      "number": 76,
+      "tokenId": 1142109,
+      "generationHash": "ooHsadtgBE1NQ1armLGULU6jgiS3GjriniemvbWzXMkRpyXLftY",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 80,
+        "White Stroke Width": 2,
+        "Black Stroke Width": 1.2
+      }
+    },
+    {
+      "number": 77,
+      "tokenId": 1142125,
+      "generationHash": "oojvdFFP34dshu6QSrLvXTGgCzoT6K8FAKCja97RUXszxHD7ckG",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 100,
+        "White Stroke Width": 1.6,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 78,
+      "tokenId": 1142139,
+      "generationHash": "onj9wMbAn5FryJdmXMVtX7hFnoSvhBEtSFTCM3dLXCK6pJHqWpz",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 90,
+        "White Stroke Width": 2.4,
+        "Black Stroke Width": 1.6
+      }
+    },
+    {
+      "number": 79,
+      "tokenId": 1142171,
+      "generationHash": "ont4rVhDGTEhHzUSq3qPFhCW6TUuMnTnNStk5Txtr9WUK1FPBzb",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 100,
+        "White Stroke Width": 1.2,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 80,
+      "tokenId": 1142217,
+      "generationHash": "ooGeCEs8Unt347mesE47tzN3a4nRM9fg3uy99LeCcg8MinBzSzr",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 90,
+        "White Stroke Width": 2.4,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 81,
+      "tokenId": 1142224,
+      "generationHash": "op611a5rYhXJ9UGqEpjT1tDbKeZzJVd9vppFmFDhsMoGgwmtkEf",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 110,
+        "White Stroke Width": 2.4,
+        "Black Stroke Width": 2.4
+      }
+    },
+    {
+      "number": 82,
+      "tokenId": 1142238,
+      "generationHash": "onrHwAvcXGU4pwKN8hJXkhSxfJAeX8MtCZtG3mMHSqp5isgEd2b",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 80,
+        "White Stroke Width": 2,
+        "Black Stroke Width": 1.2
+      }
+    },
+    {
+      "number": 83,
+      "tokenId": 1142306,
+      "generationHash": "oo6CFBHcEM1oSt48jySoANoQ2MJvz7MMMFNxxU6UNtn7K8UGoYH",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 90,
+        "White Stroke Width": 1.6,
+        "Black Stroke Width": 2.4
+      }
+    },
+    {
+      "number": 84,
+      "tokenId": 1142376,
+      "generationHash": "ooMY3NVARp8ZDovPKXznLDL7yNcw6n13ohZXcNe6ZqDGgQMUYym",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 90,
+        "White Stroke Width": 1.6,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 85,
+      "tokenId": 1142409,
+      "generationHash": "oneSQ6js91yocECmsaMV2knrN3YqFxnBnFmPyyxcpkjQ3fkLw5N",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 90,
+        "White Stroke Width": 2,
+        "Black Stroke Width": 2.4
+      }
+    },
+    {
+      "number": 86,
+      "tokenId": 1142524,
+      "generationHash": "ooAEi3jp7zQp63YE9gijnYqsZQ2kpXLsMRCA6dj9NAUf8dh47PJ",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 80,
+        "White Stroke Width": 2,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 87,
+      "tokenId": 1142568,
+      "generationHash": "oovUp9MaSLFgTM3mL8PKaG38zXgKWjQJBi4XgGwsFBvBXt2myNY",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 80,
+        "White Stroke Width": 1.2,
+        "Black Stroke Width": 1.2
+      }
+    },
+    {
+      "number": 88,
+      "tokenId": 1142712,
+      "generationHash": "ooQgcJTt4GbLBFQrb9sPFimZyysCsGgM9PZgeMEsR6Z32WUsGWp",
+      "recordedFeatures": null
+    },
+    {
+      "number": 89,
+      "tokenId": 1142810,
+      "generationHash": "oouBMPCiwwywUBfHj5QpRJL1d7EkhmnrGxALpRF2BZAT5R5TZWR",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 80,
+        "White Stroke Width": 2,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 90,
+      "tokenId": 1143151,
+      "generationHash": "ooeSAUwQKmRWUFSdmNvcS6juFQY4DoDxENSa71eAMtyrvZDo3H3",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 90,
+        "White Stroke Width": 2.4,
+        "Black Stroke Width": 1.6
+      }
+    },
+    {
+      "number": 91,
+      "tokenId": 1143525,
+      "generationHash": "opYuUdxednehwAFzEwrvF1teuVdQgXgBBVhCm6m2AzFbfRNNaYs",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 100,
+        "White Stroke Width": 1.6,
+        "Black Stroke Width": 2.8
+      }
+    },
+    {
+      "number": 92,
+      "tokenId": 1143540,
+      "generationHash": "ooY1FwPxdMvp7UWHHTtVHfLsKYWu64Ne5GCQVAjXFLsgsbeE7hJ",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 100,
+        "White Stroke Width": 2.8,
+        "Black Stroke Width": 1.2
+      }
+    },
+    {
+      "number": 93,
+      "tokenId": 1143880,
+      "generationHash": "ono5zCG4vMhi2XmfowDH1pYi1U9kovUY2dNACKNNZsEYwi9xc9p",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 80,
+        "White Stroke Width": 2,
+        "Black Stroke Width": 1.6
+      }
+    },
+    {
+      "number": 94,
+      "tokenId": 1144116,
+      "generationHash": "opEZMRMyDg3w8KQcSPiHHhf4U1vgDyQRSocbSnnq4gJybcrNRBb",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 100,
+        "White Stroke Width": 2.4,
+        "Black Stroke Width": 2.8
+      }
+    },
+    {
+      "number": 95,
+      "tokenId": 1145152,
+      "generationHash": "oogX29ckPxgqPgtUgsYY7g6KvrmUAwN2sgfnQ33udFmmTbtqASP",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 100,
+        "White Stroke Width": 2,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 96,
+      "tokenId": 1145763,
+      "generationHash": "ooz8YDKeEp9d5EHMVgbbDUV2ftACqC8YiXJVVg2omtU1qyjskok",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 100,
+        "White Stroke Width": 2.4,
+        "Black Stroke Width": 2.8
+      }
+    },
+    {
+      "number": 97,
+      "tokenId": 1147865,
+      "generationHash": "ooH1ZqygwDrxMEoQNHNkvN9dpmYwxWh8jqrAosy85EmKevj3jPT",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 80,
+        "White Stroke Width": 1.6,
+        "Black Stroke Width": 2
+      }
+    },
+    {
+      "number": 98,
+      "tokenId": 1152599,
+      "generationHash": "opDwsadBnHvyjTfLYdre6So1JsFSacPyBdrcbqKtiuAL1XJZWDf",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 90,
+        "White Stroke Width": 1.6,
+        "Black Stroke Width": 2.4
+      }
+    },
+    {
+      "number": 99,
+      "tokenId": 1153306,
+      "generationHash": "opPJikUZgvR4XfTFUpHhTzsVsjszGy9gKsnjneUhERKAwsDou6t",
+      "recordedFeatures": {
+        "Background": "Black",
+        "Iterations": 80,
+        "White Stroke Width": 1.6,
+        "Black Stroke Width": 1.6
+      }
+    },
+    {
+      "number": 100,
+      "tokenId": 1156710,
+      "generationHash": "ons8LwgNqougNFi7qYbZXJVszGEqKCvrZgnHUTfF34ZmDUFQP15",
+      "recordedFeatures": {
+        "Background": "White",
+        "Iterations": 70,
+        "White Stroke Width": 2,
+        "Black Stroke Width": 2.4
+      }
+    }
+  ]
+}

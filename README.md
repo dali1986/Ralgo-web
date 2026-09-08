@@ -15,7 +15,7 @@ Edit `templates/home.html` for the homepage, `website/collection-meta.js` for co
 
 Install image-build support with `python3 -m pip install -r tools/requirements-images.txt` before a local build (Python 3.10+). GitHub Actions installs it automatically. Share cards are generated into `_site/assets/share/` and do not need to be committed.
 
-Run `python3 tools/audit-thumbnails.py` to review suspicious previews (requires Pillow). Ten Overgrowth entries currently have source signing placeholders and are marked `previewStatus: "unavailable"`; the gallery retains their titles and Verse links without displaying those placeholders. Replace their local image files and remove that status when verified artwork previews become available. The build flags newly added images smaller than 5 KB for review.
+Run `python3 tools/audit-thumbnails.py` to review suspicious previews (requires Pillow). Nine Overgrowth entries currently have source signing placeholders and are marked `previewStatus: "unavailable"`; the gallery retains their titles and Verse links without displaying those placeholders. Replace their local image files and remove that status when verified artwork previews become available. The build flags newly added images smaller than 5 KB for review. Overgrowth #5 was recovered from its recorded hash using the artist-supplied sketch; see [recovery provenance](tools/overgrowth-recovery.json) and the [reproduction tool](tools/overgrowth/README.md).
 
 ## Publish
 
