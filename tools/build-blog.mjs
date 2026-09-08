@@ -28,7 +28,7 @@ for(const filename of await readdir(join(root,'content/posts'))){
   posts.push(p);
 }
 posts.sort((a,b)=>b.date.localeCompare(a.date)||a.slug.localeCompare(b.slug));
-const footer='<footer class="blog-footer"><a class="wordmark" href="/">RALGO<span>✳</span></a><div><span>© Ralgo · Robert Allen</span><a href="/">Return to the exhibition ↗</a></div></footer>';
+const footer='<footer class="blog-footer"><a class="wordmark" href="/">RALGO<span>✳</span></a><!-- CONTACT_FOOTER --><div><span>© Ralgo · Robert Allen</span><a href="/">Return to the exhibition ↗</a></div></footer>';
 function page(title,description,body,options={}){return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101110"><title>${esc(title)} — Ralgo</title><meta name="description" content="${esc(description)}">${headExtras({title:title+' — Ralgo',description,path:'/blog/',...options})}<link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/blog.css"></head><body><a class="skip" href="#blog-main">Skip to the briefings</a><header class="site-header"><a class="wordmark" href="/" aria-label="Ralgo home">RALGO<span>✳</span></a><span class="header-description">ART / TECHNOLOGY / IDEAS</span><nav aria-label="Main navigation"><a href="/collections/">Collections</a><a href="/blog/" aria-current="page">Blog</a><a href="/feed.xml">RSS</a></nav></header><main id="blog-main">${body}</main>${footer}</body></html>`;}
 function cards(items){return items.map(postCard).join('');}
 const previousPath=join(root,'tools/blog-generated.json');

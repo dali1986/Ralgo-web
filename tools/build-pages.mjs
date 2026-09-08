@@ -1,6 +1,7 @@
 import {cp, readFile, writeFile, readdir, rm} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {join} from 'node:path';
+import {applyEngagement, siteSettings} from './site-engagement.mjs';
 
 // configure-pages supplies '' for a custom domain/user site, or '/repository'.
 const input = process.env.PAGES_BASE_PATH || '';
@@ -35,19 +36,19 @@ function mapJSON(value) {
   return value;
 }
 for (const path of await files(output)) {
-  if (!base || !/\.(html|js|css|json)$/.test(path)) continue;
+  if (!/\.(html|js|css|json)$/.test(path)) continue;
   const original = await readFile(path, 'utf8');
-  let text = original;
-  if (path.endsWith('.json')) text = JSON.stringify(mapJSON(JSON.parse(text)), null, 2) + '\n';
-  if (path.endsWith('.html')) {
+  let text = path.endsWith('.html') ? applyEngagement(original) : original;
+  if (base && path.endsWith('.json')) text = JSON.stringify(mapJSON(JSON.parse(text)), null, 2) + '\n';
+  if (base && path.endsWith('.html')) {
     text = text.replace(/(\b(?:href|src|poster|data-fallback)\s*=\s*["'])\/(?!\/)/g, '$1' + base + '/');
     text = text.replace(/(\bsrcset\s*=\s*")([^"]+)(")/g, (_,a,value,z)=>a+value.split(',').map(item=>item.trim().replace(/^\/(?!\/)/,base+'/')).join(', ')+z);
   }
-  if (path.endsWith('.js')) {
+  if (base && path.endsWith('.js')) {
     // Only known site URL prefixes: leave '/' delimiters and artwork maths alone.
     text = text.replace(/(["'`])\/(?=(?:art|artworks|assets|data|blog)(?:\/|[?#"'`]))/g, '$1' + base + '/');
   }
-  if (path.endsWith('.css')) {
+  if (base && path.endsWith('.css')) {
     text = text.replace(/(url\(\s*["']?)\/(?!\/)/g, '$1' + base + '/');
   }
   if (text !== original) await writeFile(path, text);
@@ -56,5 +57,7 @@ const {fingerprintAssets} = await import('./fingerprint-assets.mjs');
 await fingerprintAssets(output);
 await writeFile(join(output, '.nojekyll'), '');
 console.log(`Pages build ready: _site (base path: ${base || '/'})`);
+if (!siteSettings.contactEmail) console.log('Contact sections are awaiting the approved public email in site-settings.json.');
+if (!siteSettings.goatcounterEndpoint) console.log('Analytics is inactive until the owned GoatCounter endpoint is added to site-settings.json.');
 const {validateSite} = await import('./validate-pages.mjs');
 await validateSite(output, base);

@@ -42,6 +42,7 @@ function syncPageMetadata(){
   tag.setAttribute('content',value);
  }
  enhanceLinks();
+ window.dispatchEvent(new Event('ralgo-pageview'));
 }
 const roomOrder=['wild','order','continuum','quantum-places-lost-in-time','overgrowth','overgrowth-x8'];
 const livingOrder=['water','chimera','creatures','illuminations','fireplace'];

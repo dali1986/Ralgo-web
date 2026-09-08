@@ -61,6 +61,17 @@ Use your normal GitHub authentication or GitHub Desktop. No personal token needs
 
 The project contains more than 1,000 artwork files. Git or GitHub Desktop is the practical way to upload it; do not drag the complete ZIP into GitHub's web uploader.
 
+## Contact and analytics setup
+
+`site-settings.json` holds two public settings. They are deliberately blank until the artist supplies the email to display and their own GoatCounter endpoint. Do not use a sign-in email, guess a mailbox or send visitors to an unverified analytics account.
+
+- `contactEmail`: the approved public email. The build places a working mailto link and “Commissions, exhibitions and press enquiries.” in About, the exhibition footer and the briefing footers. Empty means no empty or placeholder contact block is shown.
+- `goatcounterEndpoint`: copy the exact `https://SITECODE.goatcounter.com/count` value from the owner’s GoatCounter installation snippet. No API key is required. Empty means no tracking script is loaded.
+
+Once configured, the published pages load GoatCounter only on `ralgo.art` and `www.ralgo.art`. Local copies and embedded artwork previews are excluded. It counts pageviews, including gallery navigation without a page reload, and `contact-about` / `contact-footer` clicks. These clicks indicate an opened email link, not a sent enquiry. Page paths exclude query strings and ordinary anchors, and referrers are limited to the referring origin. Blocked analytics never prevents navigation or email links from working.
+
+Official setup and API references: [Getting started](https://www.goatcounter.com/help/start), [JavaScript API](https://www.goatcounter.com/help/js), [Single-page apps](https://www.goatcounter.com/help/spa).
+
 ## Add your next weekly briefing
 
 Copy `content/POST-TEMPLATE.md` to a new Markdown file inside `content/posts/`. Edit its title, date, slug, excerpt and body, then commit it to `main`. You can do this directly in GitHub's file editor once the repository is published.
