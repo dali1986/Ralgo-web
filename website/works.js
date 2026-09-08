@@ -32,7 +32,7 @@ export const works = [
     "category": "Living painting",
     "section": "living",
     "images": [
-      "/assets/what-the-water-kept-778001-330-original.png"
+      "/assets/display/water-2048.webp"
     ],
     "description": "A painting you can disturb. Click to ripple, drag to pull the paint, and watch the water carry the memory of your movement into what happens next.",
     "live": "/art/water/index.html",
@@ -196,7 +196,7 @@ export const works = [
     "category": "Parametric artist · Ralgo",
     "section": "dialogue",
     "images": [
-      "/assets/qql-325.webp"
+      "/assets/display/qql-325-1400.webp"
     ],
     "description": "Ralgo’s contribution to QQL: a composition explored, selected and minted within the generative system created by Tyler Hobbs and Indigo (Dandelion) Mane.",
     "source": "https://qql.art/token/0x43cc80b0d94c86c0c1184d1a0eec42fbe51a00a98f345312627affff10c1652f",

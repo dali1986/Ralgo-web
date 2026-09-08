@@ -14,6 +14,8 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 export const output = join(root, '_site');
 await rm(output, {recursive: true, force: true});
 await cp(join(root, 'website'), output, {recursive: true});
+const {buildCollections} = await import('./build-collections.mjs');
+await buildCollections(output);
 
 async function files(directory) {
   const results = [];
@@ -39,6 +41,7 @@ for (const path of await files(output)) {
   if (path.endsWith('.json')) text = JSON.stringify(mapJSON(JSON.parse(text)), null, 2) + '\n';
   if (path.endsWith('.html')) {
     text = text.replace(/(\b(?:href|src|poster|data-fallback)\s*=\s*["'])\/(?!\/)/g, '$1' + base + '/');
+    text = text.replace(/(\bsrcset\s*=\s*")([^"]+)(")/g, (_,a,value,z)=>a+value.split(',').map(item=>item.trim().replace(/^\/(?!\/)/,base+'/')).join(', ')+z);
   }
   if (path.endsWith('.js')) {
     // Only known site URL prefixes: leave '/' delimiters and artwork maths alone.
@@ -49,6 +52,8 @@ for (const path of await files(output)) {
   }
   if (text !== original) await writeFile(path, text);
 }
+const {fingerprintAssets} = await import('./fingerprint-assets.mjs');
+await fingerprintAssets(output);
 await writeFile(join(output, '.nojekyll'), '');
 console.log(`Pages build ready: _site (base path: ${base || '/'})`);
 const {validateSite} = await import('./validate-pages.mjs');

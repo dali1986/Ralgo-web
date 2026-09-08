@@ -1,10 +1,25 @@
 # Ralgo on GitHub Pages
 
-The exhibition, interactive works, complete collection galleries and weekly briefings, prepared for GitHub Pages. The homepage design and artwork order are preserved from the 7 September 2026 export.
+The Ralgo exhibition, interactive works, collection galleries and weekly briefings. This repository, **dali1986/Ralgo-web**, publishes to **https://ralgo.art** through GitHub Pages. Pushes to `main` run the existing **Publish Ralgo website** workflow.
+
+## Current website
+
+- Responsive WebP display images preserve the original Water Kept PNG and full-resolution QQL asset.
+- Every collection and numbered work has a static, shareable URL under `/collections/`. Featured works have pages under `/works/`. The exhibition enhances these links with its existing viewer; old hash links still resolve.
+- Open Graph and Twitter metadata, a favicon, canonical links, JSON-LD, `sitemap.xml` and `robots.txt` are generated during the build.
+- Weekly posts automatically update `/feed.xml` as well as the blog archive and homepage.
+- Standalone living works get a small RALGO return link during the build. Their renderer source stays intact.
+- The build gives display images and interface assets content-based filenames. Cache lifetimes are controlled by GitHub Pages.
+
+Edit `templates/home.html` for the homepage, `website/collection-meta.js` for collection descriptions, and `website/data/catalogue.json` for individual works. `tools/build-collections.mjs` generates the collection and artwork pages into `_site`; these generated pages do not need to be committed separately.
+
+Run `python3 tools/audit-thumbnails.py` to review suspicious previews (requires Pillow). Ten Overgrowth entries currently have source signing placeholders and are marked `previewStatus: "unavailable"`; the gallery retains their titles and Verse links without displaying those placeholders. Replace their local image files and remove that status when verified artwork previews become available. The build flags newly added images smaller than 5 KB for review.
 
 ## Publish
 
-### Prepared for Dali1986
+### Original export setup instructions
+
+The following setup script is for creating a **separate new repository** from an export. For this existing website, commit and push to **dali1986/Ralgo-web** instead.
 
 The included `PUBLISH-TO-GITHUB.sh` creates the public repository **Dali1986/ralgo-website**, uploads this exhibition, enables GitHub Pages, and starts and watches the deployment. It checks that GitHub CLI is signed in as Dali1986. If an unrelated repository already uses that name, it stops without changing it.
 
@@ -65,7 +80,7 @@ Keep unpublished work in a local `content/drafts/` folder. That folder is ignore
 | `website/data/catalogue.json` | All collection items, names and Seasky/Aria pairings |
 | `website/art/` | Water Kept, Chimera, Quad, Creatures, Illuminations and fireplace programs |
 | `website/assets/` | Featured images, including the chosen Water Kept PNG |
-| `website/artworks/` | All 1,009 local collection previews and the larger Quasi images |
+| `website/artworks/` | Cached collection previews, retained alternative Arias and larger Quasi images |
 | `content/posts/` | Published briefings in Markdown |
 | `.github/workflows/pages.yml` | Automatic GitHub Pages publishing |
 
@@ -98,7 +113,7 @@ Once the Pages address works, add a custom domain under the repository's **Setti
 
 ## What this version includes
 
-The supplied Water Kept PNG, all 1,009 local collection previews, the larger Quasi images, the six featured interactive experiences including Chimera Quad, and the complete Monday briefing are included. All local generators open within this site.
+The supplied Water Kept PNG, 1,006 selected catalogue entries, the larger Quasi images, the six featured interactive experiences including Chimera Quad, and the complete Monday briefing are included. Each Seasky is paired with one selected Aria. All local generators open within this site.
 
 Original full-resolution collection images and minted token renderers still use their original external destinations where the exhibition did so. Interface fonts use Google Fonts with system fallbacks. This is a complete website package, rather than a cache of every remote full-resolution NFT image.
 

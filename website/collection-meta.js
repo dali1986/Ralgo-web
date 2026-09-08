@@ -1,0 +1,13 @@
+// Shared by the exhibition and the static page builder.
+export const meta={
+ quasi:{title:'Quasi Dragon Studies',kicker:'PRIMARY ARTIST · HARVEY RAYNER',description:'Ralgo compositions from the Quasi Dragon Studies series by Harvey Rayner. Harvey is the primary artist and creator of the series and its generative system. Forty compositions by Ralgo are presented here.',intro:'Ralgo compositions from Harvey Rayner’s series.'},
+ 'seasky-pairs':{title:'Seasky & Aria',kicker:'SEASKY · ART BLOCKS 500 / SEASKY ARIA',description:'One horizon, two expressions. Seasky is an Art Blocks 500 release in the Presents category. Each original is paired with one selected Seasky Aria reimagining.',intro:'100 generative originals. 100 selected reimaginings.',source:'https://www.artblocks.io/collection/seasky-by-ralgo'},
+ wild:{title:'Wild Wave Studies',kicker:'GENERATIVE ART · AI · ARTIST CURATION',description:'Fifty encounters with the sea at its most unruly. Generative beginnings transformed through AI and the artist’s selection.',intro:'The sea, pushed beyond the horizon.'},
+ order:{title:'Order v Chaos',kicker:'OVERGROWTH III · VERSE',description:'Ordered structures encounter a growing wilderness. Follow the tension through all eighty works.',intro:'Structure meets the unruly.'},
+ overgrowth:{title:'Overgrowth',kicker:'GENERATIVE ART · RALGO',description:'A brush wanders. Marks accumulate. Intricate monochrome landscapes emerge from a simple, restless system.',intro:'The first wilderness.'},
+ 'overgrowth-x8':{title:'Overgrowth x8',kicker:'GENERATIVE ART · RALGO',description:'Eight moving brushes extend the Overgrowth vocabulary into new landscapes. All eighty minted works are shown here.',intro:'Eight brushes. Many possible worlds.'},
+ continuum:{title:'Continuum',kicker:'GENERATIVE ART · RALGO',description:'Random walks through colour and space become unfamiliar architectures. Explore every one of the 256 compositions.',intro:'Architectures of colour and chance.'},
+ 'quantum-places-lost-in-time':{title:'Quantum Places Lost in Time',kicker:'GENERATIVE ART · RALGO',description:'Two hundred imagined places, suspended between atmosphere, structure and another dimension.',intro:'Somewhere outside ordinary time.'},
+ seasky:{title:'Seasky',kicker:'ART BLOCKS 500 · PRESENTS',description:'An Art Blocks 500 release in the Presents category. All one hundred originals. For the complete dialogue between each work and its reimagining, enter the paired collection.'},
+ aria:{title:'Seasky Aria',kicker:'SEASKY, REIMAGINED',description:'One selected Aria for each of the 100 Seasky originals. Each work retains its connection to the original Seasky.'}
+};

@@ -1,18 +1,39 @@
 import {works} from './works.js';
+import {meta} from './collection-meta.js';
+import {routeHref, pathRoute} from './routes.js';
 const $=id=>document.getElementById(id), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const viewer=$('art-viewer'),indexDialog=$('index-dialog');
-const meta={
- quasi:{title:'Quasi Dragon Studies',kicker:'PRIMARY ARTIST · HARVEY RAYNER',description:'Ralgo compositions from the Quasi Dragon Studies series by Harvey Rayner. Harvey is the primary artist and creator of the series and its generative system. Forty compositions by Ralgo are presented here.',intro:'Ralgo compositions from Harvey Rayner’s series.'},
- 'seasky-pairs':{title:'Seasky & Aria',kicker:'SEASKY · ART BLOCKS 500 / SEASKY ARIA',description:'One horizon, two expressions. Seasky is an Art Blocks 500 release in the Presents category. Each original is paired with one selected Seasky Aria reimagining.',intro:'100 generative originals. 100 selected reimaginings.',source:'https://www.artblocks.io/collection/seasky-by-ralgo'},
- wild:{title:'Wild Wave Studies',kicker:'GENERATIVE ART · AI · ARTIST CURATION',description:'Fifty encounters with the sea at its most unruly. Generative beginnings transformed through AI and the artist’s selection.',intro:'The sea, pushed beyond the horizon.'},
- order:{title:'Order v Chaos',kicker:'OVERGROWTH III · VERSE',description:'Ordered structures encounter a growing wilderness. Follow the tension through all eighty works.',intro:'Structure meets the unruly.'},
- overgrowth:{title:'Overgrowth',kicker:'GENERATIVE ART · RALGO',description:'A brush wanders. Marks accumulate. Intricate monochrome landscapes emerge from a simple, restless system.',intro:'The first wilderness.'},
- 'overgrowth-x8':{title:'Overgrowth x8',kicker:'GENERATIVE ART · RALGO',description:'Eight moving brushes extend the Overgrowth vocabulary into new landscapes. All eighty minted works are shown here.',intro:'Eight brushes. Many possible worlds.'},
- continuum:{title:'Continuum',kicker:'GENERATIVE ART · RALGO',description:'Random walks through colour and space become unfamiliar architectures. Explore every one of the 256 compositions.',intro:'Architectures of colour and chance.'},
- 'quantum-places-lost-in-time':{title:'Quantum Places Lost in Time',kicker:'GENERATIVE ART · RALGO',description:'Two hundred imagined places, suspended between atmosphere, structure and another dimension.',intro:'Somewhere outside ordinary time.'},
- seasky:{title:'Seasky',kicker:'ART BLOCKS 500 · PRESENTS',description:'An Art Blocks 500 release in the Presents category. All one hundred originals. For the complete dialogue between each work and its reimagining, enter the paired collection.'},
- aria:{title:'Seasky Aria',kicker:'SEASKY, REIMAGINED',description:'One selected Aria for each of the 100 Seasky originals. Each work retains its connection to the original Seasky.'}
-};
+const siteBase=document.body.dataset.siteBase||'';
+function enhanceLinks(){
+ for(const a of document.querySelectorAll('a[href^="#"]')){
+  const route=a.getAttribute('href');
+  if(/^#(?:collection\/|art\/|live\/|home$|living$|collections$|about$)/.test(route)){a.dataset.route=route;a.href=routeHref(route,siteBase);}
+ }
+}
+function activeHeading(id){
+ for(const headingID of ['home-title','collection-title']){
+  const old=$(headingID),tag=headingID===id?'H1':'H2';
+  if(old&&old.tagName!==tag){const next=document.createElement(tag);next.id=old.id;next.innerHTML=old.innerHTML;old.replaceWith(next);}
+ }
+ const skip=document.querySelector('.skip');if(skip)skip.href=id==='collection-title'?'#collection-view':'#living';
+}
+function syncPageMetadata(){
+ const route=location.hash||pathRoute(location.pathname,siteBase),parts=route.slice(1).split('/');
+ let description='Painterly seas, strange worlds and unlikely creatures. Generative art by Ralgo, exploring what happens when a system makes room for chance.',picture='/assets/display/ralgo-share.jpg',alt='What the Water Kept by Ralgo';
+ if(['collection','art'].includes(parts[0])){
+  const cid=parts[1];description=meta[cid]?.description||description;
+  const w=parts[0]==='art'?getItems(cid).find(w=>w.number===Number(parts[2])):getItems(cid).find(w=>(w.original||w).previewStatus!=='unavailable');
+  const original=w?.original||w;if(original?.previewStatus!=='unavailable'&&original){picture=original.local||original.thumbnail||picture;alt=original.title;}
+ }else if(parts[0]==='live'){
+  const w=works.find(w=>w.id===parts[1]);if(w){description=w.description;picture=w.images?.[0]||picture;alt=w.images?.length?w.title:alt;}
+ }
+ const canonical=new URL(routeHref(route,siteBase),location.origin);canonical.hash='';
+ const imageURL=new URL(picture,location.origin).href;
+ document.querySelector('link[rel="canonical"]')?.setAttribute('href',canonical.href);
+ for(const [selector,content] of [['meta[name="description"]',description],['meta[property="og:title"]',document.title],['meta[name="twitter:title"]',document.title],['meta[property="og:description"]',description],['meta[name="twitter:description"]',description],['meta[property="og:url"]',canonical.href],['meta[property="og:image"]',imageURL],['meta[name="twitter:image"]',imageURL],['meta[property="og:image:alt"]',alt],['meta[name="twitter:image:alt"]',alt]])document.querySelector(selector)?.setAttribute('content',content);
+ for(const key of ['width','height'])document.querySelector(`meta[property="og:image:${key}"]`)?.remove();
+ enhanceLinks();
+}
 const roomOrder=['wild','order','continuum','quantum-places-lost-in-time','overgrowth','overgrowth-x8'];
 const livingOrder=['water','chimera','creatures','illuminations','fireplace'];
 const verseCollections=new Set(['wild','order','continuum','quantum-places-lost-in-time','overgrowth','overgrowth-x8']);
@@ -23,9 +44,9 @@ let sequence=[],viewIndex=0,viewCollection=null,liveWork=null,variant=0,pairMode
 const featuredPairs=[68,0,12,57,99,33,1,80];
 const artBlocksSeasky='https://www.artblocks.io/collection/seasky-by-ralgo',artBlocks500='https://www.artblocks.io/discover/ab-500';
 function platformLinks(cid){if(['seasky','aria','seasky-pairs'].includes(cid))return link(artBlocksSeasky,'Seasky on Art Blocks')+link(artBlocks500,'Art Blocks 500');if(cid==='quasi')return link('https://rayner.art/','Harvey Rayner’s website')+link(collections.get('quasi').source,'Quasi Dragon Studies on Verse');return verseCollections.has(cid)?link(collections.get(cid).source,'View on Verse'):'';}
-function img(w,{eager=false}={}){return `<img src="${esc(w.local||w.thumbnail||w.image)}" data-fallback="${esc(w.thumbnail||w.image)}" alt="${esc(w.title)}" loading="${eager?'eager':'lazy'}" decoding="async">`;}
+function img(w,{eager=false}={}){if(w.previewStatus==='unavailable')return '<span class="preview-unavailable">Preview unavailable<br>View the collection on Verse</span>';return `<img src="${esc(w.local||w.thumbnail||w.image)}" data-fallback="${esc(w.thumbnail||w.image)}" alt="${esc(w.title)}" loading="${eager?'eager':'lazy'}" decoding="async">`;}
 function link(url,label,cls='underlink'){return `<a class="${cls}" href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(label)} <span aria-hidden="true">↗</span></a>`;}
-function goto(hash,{replace=false}={}){if(replace){history.replaceState(null,'',hash);route();}else if(location.hash===hash)route();else location.hash=hash;}
+function goto(hash,{replace=false}={}){const url=routeHref(hash,siteBase);if(replace)history.replaceState(null,'',url);else if(location.pathname+location.hash!==url)history.pushState(null,'',url);route();}
 function lockScroll(){document.body.classList.toggle('modal-open',viewer.open||indexDialog.open);window.dispatchEvent(new Event('exhibition-view-change'));}
 function getItems(cid){return cid==='seasky-pairs'?pairs:collections.get(cid)?.items||[];}
 function ariaName(aria){return aria.title.replace(/^#\s*\d+\s*/, '').trim()||aria.title;}
@@ -44,6 +65,7 @@ function renderHome(){
 }
 function renderCollection(cid){
  if(!meta[cid]){goto('#collections',{replace:true});return;}
+ activeHeading('collection-title');
  const changed=activeCollection!==cid;
  if(!$('home-view').hidden)homeScroll=window.scrollY;
  $('home-view').hidden=true;$('collection-view').hidden=false;window.dispatchEvent(new Event('exhibition-view-change'));removeFire();
@@ -66,7 +88,7 @@ function tile(w,cid){
  if(cid==='seasky-pairs'){const hasNote=w.arias.some(a=>a.pairingStatus==='proposed_title_and_visual');return `<article class="art-card"><a class="art-tile" href="#art/${cid}/${w.number}" aria-label="View Seasky ${w.number} and ${w.arias.length} Aria ${w.arias.length===1?'version':'versions'}"><div class="pair-tile"><span class="art-image">${img(w.original)}</span><span class="aria-stack" style="--variants:${Math.max(1,w.arias.length)}">${w.arias.map(a=>`<figure class="aria-mini"><span class="art-image">${img(a)}</span><figcaption>${esc(ariaName(a))}</figcaption></figure>`).join('')}</span></div><div class="tile-caption"><strong>Seasky #${w.number}</strong><small>${pairedLabel(w)}</small></div><div class="pair-labels"><span>Original</span><span>${hasNote?'<span class="pair-note">Pairing note · </span>':''}Aria${w.arias.length>1?' · all versions shown':''}</span></div></a></article>`;}
  return `<article class="art-card ${cid==='quasi'&&w.width/w.height>1.85?'wide-study':''}"><a class="art-tile" href="#art/${cid}/${w.number}" aria-label="View ${esc(w.title)}"><span class="art-image">${img(w)}</span><span class="tile-caption"><strong>${esc(w.shortTitle||w.title)}</strong><small>↗</small></span></a></article>`;
 }
-function appendGallery(all=false){const slice=filtered.slice(visible,all?filtered.length:visible+24);$('gallery').insertAdjacentHTML('beforeend',slice.map(w=>tile(w,activeCollection)).join(''));visible+=slice.length;$('gallery-count').textContent=`Showing ${visible} of ${filtered.length} ${activeCollection==='seasky-pairs'?'pairs':'works'}`;$('load-more').hidden=visible>=filtered.length;$('show-all').hidden=visible>=filtered.length;}
+function appendGallery(all=false){const slice=filtered.slice(visible,all?filtered.length:visible+24);$('gallery').insertAdjacentHTML('beforeend',slice.map(w=>tile(w,activeCollection)).join(''));visible+=slice.length;$('gallery-count').textContent=`Showing ${visible} of ${filtered.length} ${activeCollection==='seasky-pairs'?'pairs':'works'}`;$('load-more').hidden=visible>=filtered.length;$('show-all').hidden=visible>=filtered.length;enhanceLinks();}
 function setLayout(mode){layout=mode;$('layout-gallery').setAttribute('aria-pressed',String(mode==='gallery'));$('layout-wall').setAttribute('aria-pressed',String(mode==='wall'));$('gallery').classList.toggle('wall',mode==='wall');}
 function resetFocus(){viewer.classList.remove('focus');$('viewer-focus').setAttribute('aria-pressed','false');$('exit-focus').hidden=true;}
 function setFocus(on){viewer.classList.toggle('focus',on);$('viewer-focus').setAttribute('aria-pressed',String(on));$('exit-focus').hidden=!on;if(on)setInfo(false);}
@@ -75,6 +97,7 @@ function ensureViewer(){if(!viewer.open){returnFocus=document.activeElement;rese
 function closeViewer(){if(viewer.open){if(document.fullscreenElement)document.exitFullscreen?.().catch(()=>{});viewer.close();}$('viewer-stage').replaceChildren();liveWork=null;setInfo(false);resetFocus();lockScroll();}
 function viewImage(w,label){
  const f=document.createElement('figure');f.className='view-figure';
+ if(w.previewStatus==='unavailable'){f.innerHTML='<div class="preview-unavailable">A preview isn’t available for this work yet.</div>'+link(w.source,'View collection on Verse');return f;}
  const box=document.createElement('div');box.className='view-image';
  const low=document.createElement('img');low.src=w.local||w.thumbnail||w.image;low.alt=w.title;low.dataset.fallback=w.thumbnail||w.image;box.append(low);
  // These imported collections have reliable local previews; Verse hosts their collection views.
@@ -116,6 +139,7 @@ function openArt(cid,number){
 function liveStill(w,index=0){$('viewer-stage').className='viewer-stage';const images=w.images||[];if(!images.length)return;const image=images[index];$('viewer-stage').replaceChildren(viewImage({title:w.title,image,local:image,original:image},'RALGO'));document.querySelectorAll('[data-live-still]').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.liveStill)===index)));}
 function startLive(w){$('viewer-stage').className='viewer-stage live';const frame=document.createElement('iframe');frame.src=w.live;frame.title=w.title;frame.allow='autoplay; fullscreen';frame.allowFullscreen=true;$('viewer-stage').replaceChildren(frame);setInfo(false);}
 function openLive(id){
+ activeHeading('home-title');
  const w=works.find(x=>x.id===id);if(!w)return;$('viewer-back').querySelector('span').textContent='Exhibition';liveWork=w;viewCollection=null;returnHash='#living';ensureViewer();
  $('viewer-context').textContent=w.category;$('viewer-title').textContent=w.shortTitle||w.title;$('viewer-progress').textContent='';$('pair-modes').hidden=true;$('aria-variant-label').hidden=true;$('viewer-stage').className='viewer-stage';
  $('viewer-footer-caption').innerHTML=w.live?link(w.live,'Open separately','separate-link'):'Parametric artist & minter: Ralgo';
@@ -126,15 +150,18 @@ function openLive(id){
 function moveArt(dir){if(liveWork){const ids=viewerOrder,i=ids.indexOf(liveWork.id);goto('#live/'+ids[(i+dir+ids.length)%ids.length],{replace:true});return;}if(!sequence.length)return;const i=(viewIndex+dir+sequence.length)%sequence.length;goto(`#art/${viewCollection}/${sequence[i].number}`,{replace:true});}
 function route(){
  if(!data)return;if(indexDialog.open)indexDialog.close();
- const hash=location.hash||'#home',parts=hash.slice(1).split('/');
- if(parts[0]==='art'&&parts.length>=3){const n=Number(parts[2]);if(Number.isInteger(n))openArt(parts[1],n);return;}
- if(parts[0]==='live'){if(parts[1]==='quasi'){goto('#collection/quasi',{replace:true});return;}openLive(parts[1]);return;}
+ $('static-work')?.remove();
+ const hash=location.hash||pathRoute(location.pathname,siteBase),parts=hash.slice(1).split('/');
+ if(/^#(?:collection\/|art\/|live\/)/.test(location.hash))history.replaceState(null,'',routeHref(hash,siteBase));
+ if(parts[0]==='art'&&parts.length>=3){const n=Number(parts[2]);if(Number.isInteger(n))openArt(parts[1],n);syncPageMetadata();return;}
+ if(parts[0]==='live'){if(parts[1]==='quasi'){goto('#collection/quasi',{replace:true});return;}openLive(parts[1]);syncPageMetadata();return;}
  if(parts[0]==='work'){const old=parts[1];const aliases={seasky:'seasky-pairs',aria:'seasky-pairs',quantum:'quantum-places-lost-in-time',order:'order',overgrowth:'overgrowth',wild:'wild',continuum:'continuum',quasi:'quasi'};goto(aliases[old]?'#collection/'+aliases[old]:'#live/'+old,{replace:true});return;}
  closeViewer();
- if(parts[0]==='collection'){renderCollection(parts[1]);return;}
+ if(parts[0]==='collection'){renderCollection(parts[1]);syncPageMetadata();return;}
+ activeHeading('home-title');
  const wasCollection=!$('collection-view').hidden;$('collection-view').hidden=true;$('home-view').hidden=false;activeCollection=null;document.title='RALGO — Living works & collections';
  if(parts[0]==='home')window.scrollTo({top:0,behavior:'instant'});else if(['collections','living','about'].includes(parts[0]))requestAnimationFrame(()=>$(parts[0]).scrollIntoView({behavior:'instant'}));else if(wasCollection)window.scrollTo({top:homeScroll,behavior:'instant'});
- maybeFire();
+ maybeFire();syncPageMetadata();
 }
 function removeFire(){const frame=$('fire-preview').querySelector('iframe');if(frame)frame.remove();const cover=$('fire-preview').querySelector('.preview-cover');if(cover)cover.remove();$('fire-preview').querySelector('.preview-launch').hidden=false;}
 function maybeFire(){
@@ -149,10 +176,11 @@ $('viewer-fullscreen').hidden=!document.fullscreenEnabled;
 $('viewer-fullscreen').addEventListener('click',async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await viewer.requestFullscreen();}catch{$('status').textContent='Full screen is unavailable. Focus mode expands the artwork within this window.';}});
 document.addEventListener('fullscreenchange',()=>{$('viewer-fullscreen').setAttribute('aria-label',document.fullscreenElement?'Exit full screen':'Enter full screen');});
 $('viewer-info-toggle').addEventListener('click',()=>setInfo($('viewer-info').hidden));$('viewer-focus').addEventListener('click',()=>setFocus(!viewer.classList.contains('focus')));$('exit-focus').addEventListener('click',()=>setFocus(false));$('prev-art').addEventListener('click',()=>moveArt(-1));$('next-art').addEventListener('click',()=>moveArt(1));$('aria-variant').addEventListener('change',e=>{variant=Number(e.target.value);renderArt();});
-document.addEventListener('click',e=>{const live=e.target.closest('[data-live]');if(live){returnFocus=live;goto('#live/'+live.dataset.live);}const mode=e.target.closest('[data-pair-mode]');if(mode){pairMode=mode.dataset.pairMode;renderArt();}if(e.target.closest('[data-restart-live]')&&liveWork)startLive(liveWork);const still=e.target.closest('[data-live-still]');if(still&&liveWork)liveStill(liveWork,Number(still.dataset.liveStill));});
+document.addEventListener('click',e=>{if(!data||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;const live=e.target.closest('[data-live]');if(live){e.preventDefault();returnFocus=live;goto('#live/'+live.dataset.live);return;}const routeLink=e.target.closest('a[data-route]');if(routeLink){e.preventDefault();returnFocus=routeLink;goto(routeLink.dataset.route);return;}const mode=e.target.closest('[data-pair-mode]');if(mode){pairMode=mode.dataset.pairMode;renderArt();}if(e.target.closest('[data-restart-live]')&&liveWork)startLive(liveWork);const still=e.target.closest('[data-live-still]');if(still&&liveWork)liveStill(liveWork,Number(still.dataset.liveStill));});
 document.addEventListener('keydown',e=>{if(!viewer.open||e.altKey||e.ctrlKey||e.metaKey||e.target.matches('input,select,textarea'))return;if(e.key==='ArrowLeft'){e.preventDefault();moveArt(-1);}if(e.key==='ArrowRight'){e.preventDefault();moveArt(1);}if(e.key.toLowerCase()==='f'){e.preventDefault();setFocus(!viewer.classList.contains('focus'));}});
 $('viewer-stage').addEventListener('touchstart',e=>{if(!liveWork&&e.touches.length===1)artTouch=[e.touches[0].clientX,e.touches[0].clientY];},{passive:true});$('viewer-stage').addEventListener('touchend',e=>{if(!artTouch)return;const dx=e.changedTouches[0].clientX-artTouch[0],dy=e.changedTouches[0].clientY-artTouch[1];artTouch=null;if(Math.abs(dx)>75&&Math.abs(dx)>Math.abs(dy)*1.6)moveArt(dx<0?1:-1);},{passive:true});
 document.addEventListener('error',e=>{const im=e.target;if(!(im instanceof HTMLImageElement)||im.dataset.managed)return;const backup=im.dataset.fallback;if(backup&&im.src!==backup){delete im.dataset.fallback;im.src=backup;}else if(!im.parentElement.querySelector('.tile-error')){const note=document.createElement('span');note.className='tile-error';note.textContent='Image unavailable · open work for the original';im.parentElement.append(note);}},{capture:true});
 window.addEventListener('hashchange',route);
+window.addEventListener('popstate',route);
 async function loadCatalogue(){try{const response=await fetch('/data/catalogue.json');if(!response.ok)throw Error('Catalogue unavailable');data=await response.json();collections=new Map(data.collections.map(c=>[c.id,c]));for(const c of data.collections){if(!meta[c.id])meta[c.id]={title:c.title,kicker:c.kicker||'ARTWORK BY RALGO',description:c.description||'',intro:c.intro||''};if(!['seasky','aria','quasi'].includes(c.id)&&!roomOrder.includes(c.id)&&c.items.length)roomOrder.push(c.id);}buildPairs();renderHome();$('catalogue-error').hidden=true;route();}catch(error){$('catalogue-error').hidden=false;}}
 $('retry-catalogue').addEventListener('click',loadCatalogue);loadCatalogue();
