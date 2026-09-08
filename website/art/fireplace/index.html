@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#080504">
+  <meta name="description" content="An ever-changing generative fireplace. Watch the fire dream of dancers, battles, creatures and distant worlds.">
+  <title>Ember · The Dreaming Fire</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='52' font-size='52'%3E%F0%9F%94%A5%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+<script>if(new URLSearchParams(location.search).has('preview'))document.documentElement.classList.add('gallery-preview');</script><style>.gallery-preview .chrome,.gallery-preview #restore,.gallery-preview #notice{display:none!important}.gallery-preview body{pointer-events:none}</style></head>
+<body>
+  <canvas id="fire" aria-label="Animated fireplace with flames that transform into scenes"></canvas>
+  <div id="error" hidden><h1>The fire couldn’t start</h1><p>This artwork needs WebGL. Try enabling hardware acceleration or opening it in another browser.</p><button onclick="location.reload()">Try again</button></div>
+  <header class="chrome">
+    <a class="wordmark" href="./" aria-label="Ember home">ember<span>THE DREAMING FIRE</span></a>
+    <div class="top-actions"><button id="sound" class="text-button" aria-pressed="false" title="Toggle fireplace sound">Sound <span>off</span></button><button id="immerse" class="icon-button" aria-label="Hide controls for an immersive view" title="Hide controls · H"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></svg></button></div>
+  </header>
+  <main class="chrome" aria-label="Fireplace controls">
+    <div class="scene-caption"><span class="eyebrow" id="scene-phase">THE FIRE IS DREAMING</span><h1 id="scene-title">A world inside the flames.</h1><p id="scene-line">Stay a little. Something will appear.</p></div>
+    <section class="control-bar" aria-label="Control the fire">
+      <div class="control-group"><label for="scene">CALL A VISION</label><div class="select-row"><select id="scene"><option value="random">Surprise me</option value="dance">Ember waltz</option><option value="battle">Clash of crowns</option><option value="phoenix">The phoenix</option><option value="dragon">A dragon wakes</option><option value="forest">Forest spirits</option><option value="ship">A burning voyage</option><option value="wanderer">The wanderer</option><option value="castle">A kingdom of ash</option><option value="whale">Whale beneath the stars</option><option value="moth">The moth and the moon</option><option value="forge">The ember blacksmith</option><option value="fox">The ember fox</option><option value="cranes">The paper migration</option><option value="galaxy">A hand full of galaxies</option><option value="octopus">The octopus orchestra</option><option value="lion">The lion of dawn</option><option value="garden">The clockwork garden</option><option value="train">The dream train</option><option value="bridge">The lovers’ bridge</option><option value="heron">The watchful heron</option><option value="rider">The comet rider</option><option value="eclipse">The serpent and the sun</option><option value="book">The storyteller’s book</option><option value="lanterns">The last lanterns</option></select><button id="summon" class="summon" aria-label="Summon the selected vision" title="Summon a vision · V">Summon <span aria-hidden="true">✧</span></button></div></div>
+      <div class="control-group heat-group"><label for="heat">FLAME HEIGHT <output id="heat-value">100%</output></label><input type="range" min="0.6" max="1.45" step="0.01" value="1" id="heat"></div>
+      <div class="control-group palette-group"><label for="palette">FIRELIGHT</label><select id="palette"><option value="0">Hearth gold</option><option value="1">Copper & rose</option><option value="2">Blue alchemy</option><option value="3">Violet spell</option><option value="4">Aurora</option></select></div>
+      <button id="settings-toggle" class="icon-button" aria-expanded="false" aria-controls="settings" title="Fire settings" aria-label="Fire settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="2.5" fill="#17100c"/><circle cx="15" cy="17" r="2.5" fill="#17100c"/></svg></button>
+    </section>
+    <div class="footnote"><span id="interaction-hint">Move through the fire to stir it.</span><button id="prompt-toggle" aria-expanded="false" aria-controls="prompt-panel">Write in fire ✧</button><button id="pause" aria-pressed="false" title="Pause · Space">Pause</button></div>
+    <section id="prompt-panel" class="prompt-panel" hidden aria-labelledby="prompt-heading">
+      <div class="settings-heading"><span id="prompt-heading">Words from the embers</span><button id="close-prompt" class="icon-button" aria-label="Close fire lettering">×</button></div>
+      <form id="prompt-form">
+        <label class="prompt-label" for="vision-prompt">Your words <span id="text-count">0 / 60</span></label>
+        <textarea id="vision-prompt" rows="2" maxlength="600" placeholder="A name, a wish, a few words…" aria-describedby="prompt-help prompt-feedback" spellcheck="false" required></textarea>
+        <p id="prompt-help">Up to 60 characters. Longer messages unfold a few words at a time. Your words stay on this device.</p>
+        <div id="prompt-examples" class="prompt-examples" aria-label="Try some words"></div>
+        <p id="prompt-feedback" class="prompt-feedback" role="status" aria-live="polite"></p>
+        <button id="prompt-submit" class="summon" type="submit">Set the words alight <span aria-hidden="true">✧</span></button>
+      </form>
+    </section>
+    <section id="settings" class="settings" hidden aria-label="Fire settings"><div class="settings-heading">Let the fire dream<button id="close-settings" class="icon-button" aria-label="Close settings">×</button></div><label class="toggle-row" for="auto">Spontaneous visions<input type="checkbox" id="auto" checked></label><label for="pace">Watching pace</label><select id="pace"><option value="stories">Dreaming fire</option><option value="ambient">Long watch · quiet intervals</option></select><label for="frequency">Time between visions <output id="frequency-value">25 seconds</output></label><input id="frequency" type="range" min="8" max="300" value="25" step="1"><label for="clarity">Vision clarity <output id="clarity-value">90%</output></label><input id="clarity" type="range" min="0.2" max="1" value="0.90" step="0.01"><label for="volume">Sound level <output id="volume-value">65%</output></label><input id="volume" type="range" min="0" max="1" value="0.65" step="0.01"><label class="toggle-row" for="quiet">Fade controls while watching<input type="checkbox" id="quiet" checked></label><p>Long watch leaves a few minutes between visions. Move or tap to bring faded controls back.</p><div class="keys"><span><kbd>V</kbd> vision</span><span><kbd>H</kbd> hide controls</span><span><kbd>Space</kbd> pause</span></div></section>
+  </main>
+  <button id="restore" class="restore" hidden>Show controls <span>H</span></button>
+  <div id="notice" role="status"></div>
+  <script src="prompt-scene.js"></script><script src="fire-text.js"></script><script src="emergences.js"></script><script src="scenes.js"></script><script src="hearth.js"></script><script src="shaders.js"></script><script src="fire-synth.js"></script><script src="fire-audio.js"></script><script src="prompt-ui.js"></script><script src="app.js"></script>
+</body>
+</html>

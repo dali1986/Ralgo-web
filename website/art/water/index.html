@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0b181b">
+  <meta name="description" content="What the Water Kept — a generative painting by Ralgo. Three to fifty seas exchange wave energy, carry each other’s pigment, and fold together in a shared current.">
+  <title>What the Water Kept — Ralgo</title>
+  <link rel="icon" href="./mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./style.css?v=38">
+</head>
+<body>
+  <main id="artwork" aria-label="What the Water Kept, a moving generative painting">
+    <canvas id="sea" tabindex="0" aria-describedby="interaction-hint" aria-keyshortcuts="0 1 2 3 4 5 6 7 8 9 h a u b s j t c k l p" aria-label="Three to fifty interacting seas. Click or tap for ripples, drag to stir, or press Enter for a ripple at the center. Press P to switch painting styles, K to raise a liquid sculpture or L to turn sculpture off and on."></canvas>
+    <div class="veil top-veil" aria-hidden="true"></div>
+    <div class="veil bottom-veil" aria-hidden="true"></div>
+    <header id="painting-header" class="chrome masthead">
+      <div><p class="eyebrow">RALGO <span>·</span> A GENERATIVE PAINTING</p><h1>What the Water Kept</h1><p id="interaction-hint">Click or tap to ripple · Drag to stir<br>0–9 for events · P switches style · U hides controls</p>
+        <fieldset class="medium-switch"><legend>Painting style</legend>
+          <label><input type="radio" name="painting-medium" value="original" checked><span>Original</span></label>
+          <label><input type="radio" name="painting-medium" value="oil"><span>Oil / impasto</span></label>
+          <label><input type="radio" name="painting-medium" value="pointillist"><span>Impressionist / pointillist</span></label>
+          <label><input type="radio" name="painting-medium" value="watercolour"><span>Watercolour</span></label>
+          <label><input type="radio" name="painting-medium" value="ink"><span>Ink on paper</span></label>
+          <label><input type="radio" name="painting-medium" value="chalk"><span>Chalk on board</span></label>
+          <label><input type="radio" name="painting-medium" value="collage"><span>Collage</span></label>
+          <label><input type="radio" name="painting-medium" value="whiteboard"><span>White board / coloured pens</span></label>
+          <label><input type="radio" name="painting-medium" value="pencil"><span>Pencil sketch</span></label>
+        </fieldset>
+        <label class="medium-select-wrap" for="medium-select"><span>Style</span><select id="medium-select"><option value="original">Original</option><option value="oil">Oil / impasto</option><option value="pointillist">Impressionist / pointillist</option><option value="watercolour">Watercolour</option><option value="ink">Ink on paper</option><option value="chalk">Chalk on board</option><option value="collage">Collage</option><option value="whiteboard">White board / coloured pens</option><option value="pencil">Pencil sketch</option></select></label>
+        <button id="touch-hide-hud" class="touch-hud-button" aria-controls="painting-header painting-toolbar" aria-expanded="true">Hide controls</button></div>
+      <button id="about-button" class="text-button" aria-label="About the artwork">About the work <span aria-hidden="true">↗</span></button>
+    </header>
+    <div id="loading" role="status"><span class="loading-line"></span><p>The seas are meeting.</p></div>
+    <section id="unavailable" hidden><h2>A different window on the water.</h2><p>This painting needs a browser with WebGL 2 enabled. Please open it in a recent version of Safari, Chrome, Firefox or Edge with graphics acceleration enabled.</p><button onclick="location.reload()">Try again</button></section>
+    <footer id="painting-toolbar" class="chrome toolbar">
+      <div class="work-state"><button id="seed-button" class="seed-button" title="Choose a seed"><span class="eyebrow">SEA</span><span id="seed-label">000042</span><span class="seed-edit" aria-hidden="true">↗</span></button><span class="divider"></span><div class="age"><span id="tide-label">First tide</span><span id="elapsed">00:00</span></div></div>
+      <div class="controls">
+        <button id="sculpture-toggle" class="sculpture-button" aria-pressed="false" aria-keyshortcuts="l" title="Turn liquid sculpture on · L"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17c4-14 10-15 12-8s-9 14-10 6S15 1 20 9s-2 12-8 8"/></svg><span id="sculpture-label">Sculpture off</span></button>
+        <button id="sound" class="sound-button" aria-pressed="false" aria-label="Enable the music" title="Enable sound · A · Volume in About"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4Zm12-1a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/></svg><span id="sound-label">Sound off</span></button>
+        <button id="pause" class="icon-button" aria-label="Pause the water" title="Pause · Space"><svg viewBox="0 0 24 24" aria-hidden="true"><path id="pause-glyph" d="M8 5v14M16 5v14"/></svg></button>
+        <button id="speed" class="icon-button speed-button" aria-label="Playback speed 2 times. Click to change." title="Tide speed · V">2×</button>
+        <button id="restart" class="icon-button" aria-label="Begin this sea again" title="Begin again · R"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10a8 8 0 1 1 1.3 7M4 4v6h6"/></svg></button>
+        <button id="new-sea" class="labeled-button" title="Another image · N">Another image <span aria-hidden="true">↗</span></button>
+        <span class="divider control-divider"></span>
+        <button id="traces" class="icon-button" aria-pressed="false" aria-label="Show the sediment left by the waves" title="See what remains · M"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 8 9-5 9 5-9 5-9-5Zm0 5 9 5 9-5M3 18l9 5 9-5" transform="translate(0 -2)"/></svg></button>
+        <button id="capture-open" class="capture-button" aria-label="Capture a screenshot or video" title="Screenshot · S / Record video · B"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h5l2-3h4l2 3h5v13H3Z"/><circle cx="12" cy="13" r="4"/></svg><span>Capture</span></button>
+        <button id="hud-toggle" class="icon-button" aria-pressed="true" aria-label="Hide the controls" title="Hide or show controls · U"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h18v18H3ZM3 8h18M8 8v13"/></svg></button>
+        <button id="camera" class="icon-button" aria-pressed="true" aria-label="Hold the camera still" title="Hold the viewpoint · C"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5H4v4m12-4h4v4M4 15v4h4m12-4v4h-4"/><circle cx="12" cy="12" r="3"/></svg></button>
+        <button id="immerse" class="icon-button" aria-label="Enter immersive view" title="Immerse · F"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H3v6m12-6h6v6M3 15v6h6m12-6v6h-6"/></svg></button>
+      </div>
+    </footer>
+    <button id="leave-immersion" hidden aria-label="Leave immersive view">Return <span aria-hidden="true">↙</span></button>
+    <button id="show-hud" hidden aria-controls="painting-header painting-toolbar" aria-expanded="false" title="Show controls · U or Escape">Show controls</button>
+    <button id="record-stop" hidden aria-label="Stop recording"><span class="record-dot" aria-hidden="true"></span><span id="record-clock">00:00</span><span id="record-stop-label">Stop</span></button>
+    <p id="notice" role="status" aria-live="polite"></p>
+  </main>
+  <dialog id="about-dialog" aria-labelledby="about-title">
+    <button class="dialog-close" data-close aria-label="Close">×</button><p class="eyebrow">ABOUT THE WORK</p><h2 id="about-title">Nothing passes<br>without leaving a trace.</h2>
+    <section id="event-keys" aria-labelledby="event-keys-title">
+      <h3 id="event-keys-title">Call an event</h3>
+      <dl class="event-keys">
+        <div><dt><kbd>1</kbd></dt><dd>Dancing lights</dd></div>
+        <div><dt><kbd>2</kbd></dt><dd>Drizzle</dd></div>
+        <div><dt><kbd>3</kbd></dt><dd>Rain</dd></div>
+        <div><dt><kbd>4</kbd></dt><dd>Downpour</dd></div>
+        <div><dt><kbd>5</kbd></dt><dd>Shoal of fish</dd></div>
+        <div><dt><kbd>6</kbd></dt><dd>One colour change</dd></div>
+        <div><dt><kbd>7</kbd></dt><dd>Cascading colours</dd></div>
+        <div><dt><kbd>8</kbd></dt><dd>Sea style change</dd></div>
+        <div><dt><kbd>9</kbd></dt><dd>Skipping pebble</dd></div>
+        <div><dt><kbd>0</kbd></dt><dd>Confluence of seas</dd></div>
+        <div><dt><kbd>T</kbd></dt><dd>Rare material transformation</dd></div>
+        <div><dt><kbd>J</kbd></dt><dd>Cinematic journey</dd></div>
+        <div><dt><kbd>K</kbd></dt><dd>Raise a liquid sculpture</dd></div>
+        <div><dt><kbd>L</kbd></dt><dd>Sculpture on / off</dd></div>
+        <div><dt><kbd>P</kbd></dt><dd>Switch painting style</dd></div>
+        <div><dt><kbd>C</kbd></dt><dd>Hold / resume camera</dd></div>
+        <div><dt><kbd>A</kbd></dt><dd>Sound on / off</dd></div>
+        <div><dt><kbd>U</kbd></dt><dd>Hide / show controls</dd></div>
+        <div><dt><kbd>S</kbd></dt><dd>Save a PNG</dd></div>
+        <div><dt><kbd>B</kbd></dt><dd>Start / stop video</dd></div>
+      </dl>
+      <button id="confluence-button" class="primary-button">Call a confluence <span aria-hidden="true">↗</span></button>
+      <p>Every 60–90 seconds, three to five seas gather into a broad spiral, interweave and open again. Their voices pass a melody between them, meet in a richer harmony and settle as the water releases. Calling a confluence lets you begin one yourself; an unfolding encounter finishes before another begins.</p>
+      <p class="small-note">Press a number while viewing the painting. A new cue makes a brief handover on its own track; fish, weather, sea transformations and colour changes can overlap. If paused, press Space to let your event unfold. H opens this guide; Escape closes it. Events still arrive naturally between your interventions.</p>
+    </section>
+    <section class="journey-settings" aria-labelledby="medium-title">
+      <h3 id="medium-title">Choose the material</h3>
+      <p><strong>Original</strong> restores the painting’s original mixture of sea finishes, with its fine flowing patterns and seed-chosen materials.</p>
+      <p><strong>Oil / impasto</strong> carries the fine flowing sea patterns through thick, overlapping brush marks, raised paint edges, bristle grooves and small catches of oily light. <strong>Impressionist / pointillist</strong> builds the seas from separate, clustered dabs of bright colour, keeping fine crests and edges clear within the marks.</p>
+      <p><strong>Watercolour</strong> gathers translucent washes into blooms, granulation and pooled edges. <strong>Ink on paper</strong> follows the currents in calligraphic brush strokes: broad ink curves taper into hairlines, with lifted ends and dry-brush gaps on fine paper.</p>
+      <p><strong>Chalk on board</strong> draws mainly in white chalk on black, with broken dusty marks and occasional coloured passages. <strong>Collage</strong> carries continuous currents across torn newsprint, ribbed cardboard, woven cloth, crumpled foil, magazine pieces, tissue and painted rag paper. Their textures give way to the finest flowing contours.</p>
+      <p><strong>White board / coloured pens</strong> follows the currents in fine coloured marker lines on a clean white board, with chisel-nib variation, thin outlines and darker overlapping ink.</p>
+      <p><strong>Pencil sketch</strong> traces the seas in fine graphite, with varied pencil pressure, light shading and broken cross-hatching on softly grained paper. Fish become small outlined sketches; rain and ripples leave graphite marks.</p>
+      <p class="small-note">Choose above the painting or press <kbd>P</kbd> to cycle through all nine styles. On a phone, use the Style menu. Switching keeps your seas, their currents and your stirring, even while paused. Your choice is remembered on this device and carried into sculptures, fish, rain and captures. <kbd>H</kbd> opens the full keyboard guide.</p>
+    </section>
+    <section class="journey-settings" aria-labelledby="sculpture-title">
+      <h3 id="sculpture-title">A sculpture made of seas</h3>
+      <p>Three sheets of live paint lift from the water, curl through one another and turn in the light. Their fine patterns keep moving across both faces. Twenty seconds later, the knot melts back into the painting and leaves small currents behind.</p>
+      <p>You can still touch and stir the raised paint. The viewpoint holds during the lift; water and shoals continue below. Screenshots and videos keep the sculpture, too.</p>
+      <label class="journey-preference" for="sculpture-enabled"><input id="sculpture-enabled" type="checkbox"><span>Liquid sculpture</span></label>
+      <button id="sculpture-button" class="primary-button" aria-keyshortcuts="k" disabled>Raise the water <span aria-hidden="true">↗</span></button>
+      <p class="small-note">Sculpture is off by default. <kbd>L</kbd> or the Sculpture button enables it, then <kbd>K</kbd> begins a sculpture. Off removes an unfolding sculpture immediately, even while paused. Your explicit choice is remembered on this device. When enabled, sculptures also arrive naturally, a few minutes apart.</p>
+    </section>
+    <section class="journey-settings" aria-labelledby="journey-title">
+      <h3 id="journey-title">Closer to the extraordinary</h3>
+      <p>Occasionally, a meeting of seas becomes opalescent enamel, threads of liquid gold or living stained glass. The finish travels along the sea’s contours, then dissolves back into paint. These rare transformations arrive a few minutes apart.</p>
+      <p>The camera sometimes approaches a meeting of pigments and currents, lingers among its finer engravings, then returns to the whole painting. A journey takes about 45 seconds. The water continues evolving beneath you.</p>
+      <div class="journey-actions"><button id="material-button" class="primary-button">Transform the material</button><button id="journey-button" class="primary-button">Take a journey</button></div>
+      <label class="journey-preference" for="journeys-enabled"><input id="journeys-enabled" type="checkbox" checked><span>Automatic cinematic journeys</span></label>
+      <p class="small-note">Press <kbd>T</kbd> to call a rare finish or <kbd>J</kbd> to take a journey. <kbd>C</kbd> holds the current viewpoint and resumes it. Turning automatic journeys off brings the camera gently back to the whole painting. Pause holds both the water and the journey.</p>
+    </section>
+    <section class="sound-settings" aria-labelledby="sound-title">
+      <h3 id="sound-title">Music in the water</h3>
+      <p>Choose Sound on, or press <kbd>A</kbd>. Seas trade short melodies over warm major and minor chords. Every pitched event follows the same harmony, and common notes connect one chord to the next. Water plucks, felt keys, wooden mallets, harp, porcelain and glass take turns. Each seed has its own score. Notes ring out and leave space; there are no drones.</p>
+      <p>Fish dart in little musical runs, lights sparkle in glass, and rain falls in separate droplets. Startled fish answer with brighter, shorter notes. Skipping stones tap across the stereo field. Colour cascades answer with rising arpeggios; transforming seas change instrument. A confluence brings its participating seas into a shared musical passage. Your taps and drags play the water, too.</p>
+      <label class="volume-label" for="sound-volume"><span>Volume</span><output id="sound-volume-value" for="sound-volume">70%</output></label>
+      <input id="sound-volume" type="range" min="0" max="100" step="1" value="70">
+      <p class="small-note">Sound starts only when you ask for it. Pause holds the music with the painting; returning to a hidden tab picks up where you left off. Tide speed changes the water without rushing the music.</p>
+    </section>
+    <p>Three to fifty seas meet in a single painting. Each brings its own colours, shapes and current. Their waves exchange energy. A common current carries their pigments through one another, stretches their shapes, and winds them into shared vortices.</p><p>Colours come from 144 palettes, pairing electric blues with poppy red, peacock turquoise with citron, and molten coral with glacial light. Playful meetings include bubblegum lagoons, raspberry lemonade, mango disco and apricot fizz. Coloured crests bring out the brightest hues. Gossamer seas thread through silk, oil and heavy impasto, each with its own weight in the current. Even the broadest crests keep their fine etched patterns.</p><p>Eleven seas is the most frequent meeting. A smooth probability curve tapers towards three and fifty, making both ends rare. Each sea keeps a past of its own.</p><p>Eighteen sea structures range from braided tides and scalloped terraces to prismatic shoals, feather currents, cellular surf and folded marble. Keep the Original finish, or choose oil / impasto, impressionist / pointillist, watercolour, ink on paper, chalk on board, collage, white board / coloured pens or pencil sketch to reinterpret the same meeting. The selected medium carries the sea’s structure and fine engraving through its own brushwork.</p>
+    <p class="secondary">Each sea has its own wave and sediment field: deposits bend later waves, while energetic water wears them away. A seed chooses the complete meeting, with a varied cast of structures, palettes and textures. Whirlpools can press against ink reefs, luminous lace, or fractured mineral plates. The painting follows the evolving mixture: open forms reveal the water beneath, and interference catches light inside the flow. The viewpoint drifts with a slow pan, a slight turn and a gentle change of scale. Hold it still with the camera control. Change the tide speed, or reveal the sediment histories with the layers control.</p>
+    <p class="secondary">A random sea transforms every 6–20 seconds, and a colour cascade begins every 30 seconds. Shoals visit often, from small groups of large ribbon fish to dense clouds of tiny minnows: 10–160 fish, with silver, gold, coral stripes, jewel spots, neon, ink-and-pearl or festival colours. Lights, rain and skipping stones arrive between them. Fish, colour, structure and weather can unfold together. The intervals count active playback time and keep their pace when the tide speed changes; pausing holds everything still. Rain lands in brief crowns and airborne droplets, sending out bright, widening rings. Skipping stones throw forward sprays; their hops and splashes grow smaller as they lose energy. Rain, fish and stones leave real disturbances in the water, while colour and shape changes carry its history forward.</p>
+    <div class="colophon"><span>What the Water Kept</span><span>Ralgo · 2026</span></div>
+    <p class="small-note">Click or tap to send out a ripple. Drag to stir the currents and pull pigment into a wake. Hold a finger in a shoal’s path and the fish part around it; pebbles scatter them before they regroup. Your stirring leaves temporary currents for fish to follow. Rain gathers nearby pigment into expanding rings. With the painting focused, Enter makes a ripple at the center. Pause holds your disturbance until you press Play. Restart returns to the untouched seed; your gestures change what happens next.</p>
+  </dialog>
+  <dialog id="capture-dialog" aria-labelledby="capture-title">
+    <button class="dialog-close" data-close aria-label="Close">×</button><p class="eyebrow">KEEP THE WATER</p><h2 id="capture-title">A moment.<br>Or a passage.</h2>
+    <p>Save the painting as a PNG, or record its movement. Captures contain the artwork without the controls.</p>
+    <section class="capture-section" aria-labelledby="still-title"><h3 id="still-title">Screenshot</h3><p class="small-note">A PNG up to 3840 pixels. During a video recording, screenshots use the current picture size so the clip can continue.</p><button id="save" class="primary-button" title="Screenshot · S">Save PNG <span aria-hidden="true">↓</span></button><a id="image-download" class="capture-link" hidden download>Download the PNG again</a></section>
+    <section class="capture-section" aria-labelledby="video-title"><h3 id="video-title">Video</h3><label for="record-duration">Clip length</label><select id="record-duration"><option value="15">15 seconds</option><option value="30" selected>30 seconds</option><option value="60">1 minute</option><option value="120">2 minutes</option><option value="180">Until I stop · up to 3 minutes</option></select><p class="small-note">Turn sound on to include the music. Recording captures only this painting and its own sound. Stop at any time with <kbd>B</kbd> or the Stop button. Keep this tab visible while recording.</p><button id="record-button" class="primary-button">Record video</button></section>
+    <p id="capture-status" role="status" aria-live="polite" class="small-note">Your browser will save MP4 or WebM. Video resolution follows the current painting.</p>
+    <div id="video-result" hidden><video id="video-preview" controls playsinline preload="metadata" aria-label="Your recorded painting"></video><a id="video-download" class="primary-button" download>Download video</a></div>
+    <p class="small-note">For an unobstructed view, press <kbd>U</kbd> or choose Hide controls. Show controls, <kbd>U</kbd> or Escape brings them back.</p>
+  </dialog>
+  <dialog id="seed-dialog" aria-labelledby="seed-title"><button class="dialog-close" data-close aria-label="Close">×</button><p class="eyebrow">A DIFFERENT BEGINNING</p><h2 id="seed-title">Choose a seed.</h2><form id="seed-form"><label for="seed-input">Seed · 1–999999</label><input id="seed-input" name="seed" type="number" min="1" max="999999" step="1" required inputmode="numeric"><button type="submit" class="primary-button">Enter this meeting <span aria-hidden="true">↗</span></button></form><p class="small-note">The same seed begins the same history. The address keeps your chosen seed.</p></dialog>
+  <script type="module" src="./art.js?v=38"></script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "name": "ralgo-github-pages",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node tools/build-pages.mjs",
+    "build:blog": "node tools/build-blog.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
