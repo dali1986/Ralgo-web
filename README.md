@@ -4,14 +4,16 @@ The Ralgo exhibition, interactive works, collection galleries and weekly briefin
 
 ## Current website
 
-- Responsive WebP display images preserve the original Water Kept PNG and full-resolution QQL asset.
+- Responsive WebP images serve What the Water Kept and QQL. The oversized original homepage files have been removed from the published site; earlier copies remain in Git history.
 - Every collection and numbered work has a static, shareable URL under `/collections/`. Featured works have pages under `/works/`. The exhibition enhances these links with its existing viewer; old hash links still resolve.
-- Open Graph and Twitter metadata, a favicon, canonical links, JSON-LD, `sitemap.xml` and `robots.txt` are generated during the build.
+- Open Graph and Twitter metadata, a favicon, canonical links, JSON-LD, `sitemap.xml` and `robots.txt` are generated during the build. Available collection and work previews receive 1200 × 630 JPEG share cards with complete artwork on the gallery’s dark background. Paired Seasky cards contain both images. Static pages and client navigation use the same card URLs.
 - Weekly posts automatically update `/feed.xml` as well as the blog archive and homepage.
 - Standalone living works get a small RALGO return link during the build. Their renderer source stays intact.
 - The build gives display images and interface assets content-based filenames. Cache lifetimes are controlled by GitHub Pages.
 
 Edit `templates/home.html` for the homepage, `website/collection-meta.js` for collection descriptions, and `website/data/catalogue.json` for individual works. `tools/build-collections.mjs` generates the collection and artwork pages into `_site`; these generated pages do not need to be committed separately.
+
+Install image-build support with `python3 -m pip install -r tools/requirements-images.txt` before a local build (Python 3.10+). GitHub Actions installs it automatically. Share cards are generated into `_site/assets/share/` and do not need to be committed.
 
 Run `python3 tools/audit-thumbnails.py` to review suspicious previews (requires Pillow). Ten Overgrowth entries currently have source signing placeholders and are marked `previewStatus: "unavailable"`; the gallery retains their titles and Verse links without displaying those placeholders. Replace their local image files and remove that status when verified artwork previews become available. The build flags newly added images smaller than 5 KB for review.
 

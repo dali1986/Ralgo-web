@@ -1,0 +1,15 @@
+{
+  "collection": "Overgrowth",
+  "projectId": 19030,
+  "released": "2022-09-04",
+  "generatorUri": "ipfs://QmaXdqPQWbjkfowQjAwYaKVQaDLZKacnVgZAeUmXvcccrd",
+  "generatorAuthenticityHash": "5a9c6ab49d67d73782c689793f66a4cad25d9fa1737f48dca6a93c6a57a2bfc5",
+  "edition": 5,
+  "tokenId": "1141945",
+  "contract": "KT1U6EHmNxJTkvaWJ4ThczG4FSDaHC21ssvi",
+  "generationHash": "onu9Y1WLiqp9bsgfjwQ9VpRC7wE7xJCRr9GC1TQGG2jv9TKkWoV",
+  "capture": {"mode": "CANVAS", "triggerMode": "FN_TRIGGER", "gpu": false, "canvasSelector": "canvas"},
+  "source": "Official fxhash generativeToken(19030) metadata and entireCollection, retrieved 2026-09-07",
+  "status": "Generator source required. The fxhash gateway reports unavailable; alternate IPFS downloads were blocked on 2026-09-08. No replacement artwork has been generated.",
+  "nextStep": "Use the original 2022 p5.js generator with this fxhash parameter, capture its completed canvas, compare a known edition against its existing preview, then replace website/artworks/overgrowth/5.webp and remove previewStatus and previewNote for edition 5."
+}

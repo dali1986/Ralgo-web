@@ -16,4 +16,4 @@ Write the article in Markdown. Link sources as [descriptive text](https://exampl
 
 You can include your own artwork with a local image path:
 
-![What the Water Kept by Ralgo](/assets/what-the-water-kept-778001-330-original.png)
+![What the Water Kept by Ralgo](/assets/display/water-1400.webp)

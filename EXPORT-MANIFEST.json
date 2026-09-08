@@ -5598,11 +5598,6 @@
       "sha256": "437ac38ff4d1f343d2aa3559aa68553132d7dc067eefe6cb4aba6b6b2198d710"
     },
     {
-      "path": "website/assets/qql-325.webp",
-      "size": 3673026,
-      "sha256": "395a6e5e0fe57d626db602fd10232aa0a2c701e63e91f2919e3edef3ccab8278"
-    },
-    {
       "path": "website/assets/quantum-places-lost-in-time.webp",
       "size": 153380,
       "sha256": "9012e7f5443655a7a7c912f4ceb7ed0b7d38ce8b639508ba632514aa57d3cdc2"
@@ -5621,11 +5616,6 @@
       "path": "website/assets/water.webp",
       "size": 195976,
       "sha256": "0ffe6afb6539fefd1947309d8930ce1bc169a36ca95064be4c6066609335a819"
-    },
-    {
-      "path": "website/assets/what-the-water-kept-778001-330-original.png",
-      "size": 3719814,
-      "sha256": "1546372f5e51e16ce4b8cd798d5806e26f75a4e333b480296789aa42d7435ddc"
     },
     {
       "path": "website/assets/wild-wave-studies.webp",
@@ -5674,5 +5664,6 @@
     }
   ],
   "target_repository": "Dali1986/ralgo-website",
-  "remote_status": "Not created in this session; PUBLISH-TO-GITHUB.sh performs creation and deployment when run locally."
+  "remote_status": "Not created in this session; PUBLISH-TO-GITHUB.sh performs creation and deployment when run locally.",
+  "retired_assets_note": "The two oversized homepage originals were removed from the published website on 2026-09-08; earlier revisions remain in Git history."
 }

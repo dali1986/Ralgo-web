@@ -7,7 +7,7 @@ export const artist = {'@type':'Person','@id':absolute('/#ralgo'),name:'Ralgo',a
 export const shareImage = '/assets/display/ralgo-share.jpg';
 export function headExtras({title,description,path='/',image=shareImage,imageAlt='What the Water Kept by Ralgo',type='website',schema,dimensions}) {
   const imageURL = image.startsWith('https://') ? image : absolute(image);
-  const size = dimensions || (image === shareImage ? [1200,630] : null);
+  const size = dimensions || (image === shareImage || image.startsWith('/assets/share/') ? [1200,630] : null);
   return `<link rel="canonical" href="${esc(absolute(path))}">
 <meta property="og:site_name" content="Ralgo"><meta property="og:locale" content="en_GB">
 <meta property="og:type" content="${type}"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(description)}"><meta property="og:url" content="${esc(absolute(path))}"><meta property="og:image" content="${esc(imageURL)}"><meta property="og:image:alt" content="${esc(imageAlt)}">${size?`<meta property="og:image:width" content="${size[0]}"><meta property="og:image:height" content="${size[1]}">`:''}

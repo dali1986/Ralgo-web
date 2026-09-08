@@ -1,6 +1,7 @@
 import {works} from './works.js';
 import {meta} from './collection-meta.js';
 import {routeHref, pathRoute} from './routes.js';
+import {defaultShareImage,collectionShareImage,workShareImage,liveShareImage} from './share-card-paths.js';
 const $=id=>document.getElementById(id), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const viewer=$('art-viewer'),indexDialog=$('index-dialog');
 const siteBase=document.body.dataset.siteBase||'';
@@ -19,19 +20,27 @@ function activeHeading(id){
 }
 function syncPageMetadata(){
  const route=location.hash||pathRoute(location.pathname,siteBase),parts=route.slice(1).split('/');
- let description='Painterly seas, strange worlds and unlikely creatures. Generative art by Ralgo, exploring what happens when a system makes room for chance.',picture='/assets/display/ralgo-share.jpg',alt='What the Water Kept by Ralgo';
+ let description='Painterly seas, strange worlds and unlikely creatures. Generative art by Ralgo, exploring what happens when a system makes room for chance.',picture=defaultShareImage,alt='What the Water Kept by Ralgo';
  if(['collection','art'].includes(parts[0])){
   const cid=parts[1];description=meta[cid]?.description||description;
   const w=parts[0]==='art'?getItems(cid).find(w=>w.number===Number(parts[2])):getItems(cid).find(w=>(w.original||w).previewStatus!=='unavailable');
-  const original=w?.original||w;if(original?.previewStatus!=='unavailable'&&original){picture=original.local||original.thumbnail||picture;alt=original.title;}
+  const original=w?.original||w;
+  if(original&&original.previewStatus!=='unavailable'){
+   picture=parts[0]==='art'?workShareImage(cid,w.number):collectionShareImage(cid);
+   alt=w.original&&parts[0]==='art'?`Seasky #${w.number} / ${w.arias.map(ariaName).join(', ')}`:original.title;
+  }
  }else if(parts[0]==='live'){
-  const w=works.find(w=>w.id===parts[1]);if(w){description=w.description;picture=w.images?.[0]||picture;alt=w.images?.length?w.title:alt;}
+  const w=works.find(w=>w.id===parts[1]);if(w){description=w.description;picture=w.images?.length?liveShareImage(w.id):picture;alt=w.images?.length?(w.shortTitle||w.title):alt;}
  }
  const canonical=new URL(routeHref(route,siteBase),location.origin);canonical.hash='';
  const imageURL=new URL(picture,location.origin).href;
  document.querySelector('link[rel="canonical"]')?.setAttribute('href',canonical.href);
  for(const [selector,content] of [['meta[name="description"]',description],['meta[property="og:title"]',document.title],['meta[name="twitter:title"]',document.title],['meta[property="og:description"]',description],['meta[name="twitter:description"]',description],['meta[property="og:url"]',canonical.href],['meta[property="og:image"]',imageURL],['meta[name="twitter:image"]',imageURL],['meta[property="og:image:alt"]',alt],['meta[name="twitter:image:alt"]',alt]])document.querySelector(selector)?.setAttribute('content',content);
- for(const key of ['width','height'])document.querySelector(`meta[property="og:image:${key}"]`)?.remove();
+ for(const [key,value] of [['width','1200'],['height','630']]){
+  let tag=document.querySelector(`meta[property="og:image:${key}"]`);
+  if(!tag){tag=document.createElement('meta');tag.setAttribute('property',`og:image:${key}`);document.head.append(tag);}
+  tag.setAttribute('content',value);
+ }
  enhanceLinks();
 }
 const roomOrder=['wild','order','continuum','quantum-places-lost-in-time','overgrowth','overgrowth-x8'];

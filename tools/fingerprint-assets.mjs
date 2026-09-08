@@ -32,7 +32,7 @@ export async function fingerprintAssets(root){
   for(const file of (await readdir(root)).filter(n=>n.endsWith('.css')))await version(file,true);
   await version('data/catalogue.json',true);
   // Dependencies first, so an imported module's filename is included in its parent's hash.
-  for(const file of ['routes.js','collection-meta.js','works.js','artwork-thumbnails.js','art-home.js','app.js'])await version(file,true);
+  for(const file of ['routes.js','share-card-paths.js','collection-meta.js','works.js','artwork-thumbnails.js','art-home.js','app.js'])await version(file,true);
   async function walk(dir){for(const entry of await readdir(dir,{withFileTypes:true})){const p=join(dir,entry.name);if(entry.isDirectory())await walk(p);else if(entry.isFile()&&entry.name.endsWith('.html')){const original=await readFile(p,'utf8'),updated=replace(original,p.slice(root.length+1));if(updated!==original)await writeFile(p,updated);}}}
   await walk(root);
   console.log(`Versioned ${[...replacements.keys()].filter(k=>k.startsWith('/')).length} display and interface assets.`);

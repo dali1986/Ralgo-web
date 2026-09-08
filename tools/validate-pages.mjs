@@ -35,6 +35,17 @@ export async function validateSite(root, base = '') {
         if(page==='index.html'||/^(collections|works|blog)\//.test(page)){
           if((markup.match(/<h1\b/g)||[]).length!==1)errors.push(page+': expected one H1');
           for(const marker of ['rel="canonical"','property="og:title"','property="og:image"','name="twitter:card"','rel="icon"'])if(!markup.includes(marker))errors.push(page+': missing '+marker);
+          const og=markup.match(/property="og:image" content="([^"]+)"/)?.[1];
+          const twitter=markup.match(/name="twitter:image" content="([^"]+)"/)?.[1];
+          if(og!==twitter)errors.push(page+': Open Graph and Twitter images differ');
+          const canonical=markup.match(/rel="canonical" href="([^"]+)"/)?.[1];
+          if(og&&canonical&&new URL(og).origin===new URL(canonical).origin){
+            await check(new URL(og).pathname,page);
+            if(/^(collections|works)\//.test(page)){
+              if(!markup.includes('property="og:image:width" content="1200"')||!markup.includes('property="og:image:height" content="630"'))errors.push(page+': expected 1200 x 630 social card');
+              if(!new URL(og).pathname.includes('/assets/share/')&&!new URL(og).pathname.includes('/assets/display/ralgo-share'))errors.push(page+': unframed artwork used for social card');
+            }
+          }
         }
       }
       if (page.endsWith('.js')) {
@@ -47,6 +58,9 @@ export async function validateSite(root, base = '') {
     }
   }
   await walk(root);
+  for(const retired of ['assets/qql-325.webp','assets/what-the-water-kept-778001-330-original.png']){
+    try{await stat(join(root,retired));errors.push('Retired oversized asset is still published: '+retired);}catch(error){if(error.code!=='ENOENT')throw error;}
+  }
   const catalogue = JSON.parse(await readFile(join(root, 'data/catalogue.json'), 'utf8'));
   let works = 0;
   for (const collection of catalogue.collections) {

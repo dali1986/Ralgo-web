@@ -26,6 +26,8 @@ jobs:
         with:
           node-version: '24'
           package-manager-cache: false
+      - name: Install share-card image support
+        run: python3 -m pip install -r tools/requirements-images.txt
       - name: Read Pages address
         id: pages
         uses: actions/configure-pages@v5
