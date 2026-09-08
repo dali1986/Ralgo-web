@@ -198,12 +198,17 @@ export const works = [
     "images": [
       "/assets/display/qql-325-1400.webp"
     ],
-    "description": "Ralgo’s contribution to QQL: a composition explored, selected and minted within the generative system created by Tyler Hobbs and Indigo (Dandelion) Mane.",
+    "description": "QQL is a collaborative generative art project by Tyler Hobbs and Dandelion Mané. Collectors explore the algorithm and choose which works become part of the minted collection. QQL #325 was explored, selected and minted by Ralgo.",
     "source": "https://qql.art/token/0x43cc80b0d94c86c0c1184d1a0eec42fbe51a00a98f345312627affff10c1652f",
     "sourceLabel": "View QQL #325",
-    "credit": "QQL by Tyler Hobbs and Indigo (Dandelion) Mane. Parametric artist and minter: Ralgo.",
+    "credit": "QQL by Tyler Hobbs and Dandelion Mané. Parametric artist and minter: Ralgo.",
     "creditSource": "https://x.com/tylerxhobbs/status/1973048598175580499",
-    "extraLinks": []
+    "extraLinks": [
+      {
+        "label": "Explore the QQL project",
+        "url": "https://qql.art/"
+      }
+    ]
   },
   {
     "id": "quasi",

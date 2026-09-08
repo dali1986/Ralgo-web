@@ -85,11 +85,11 @@ export async function buildCollections(root) {
   for(const w of works.filter(w=>w.live||w.id==='qql')){
     const path=`/works/${w.id}/`,title=w.shortTitle||w.title;
     const picture=w.images?.[0]||shareImage;
-    const sharePicture=shareCard(liveShareImage(w.id),w.images?.slice(0,1)||[],title,w.id==='qql'?'QQL by Tyler Hobbs & Indigo Mane · Composition: Ralgo':'Ralgo · ralgo.art');
-    const schema={'@type':'VisualArtwork',name:title,description:w.description,url:absolute(path),creator:w.id==='qql'?[{'@type':'Person',name:'Tyler Hobbs'},{'@type':'Person',name:'Indigo (Dandelion) Mane'}]:artist};
+    const sharePicture=shareCard(liveShareImage(w.id),w.images?.slice(0,1)||[],title,w.id==='qql'?'QQL by Tyler Hobbs & Dandelion Mané · Composition: Ralgo':'Ralgo · ralgo.art');
+    const schema={'@type':'VisualArtwork',name:title,description:w.description,url:absolute(path),creator:w.id==='qql'?[{'@type':'Person',name:'Tyler Hobbs'},{'@type':'Person',name:'Dandelion Mané'}]:artist};
     if(w.id==='qql')schema.contributor=artist;
     const visual=w.images?.[0]?`<img class="standalone-image" src="${esc(picture)}" alt="${esc(title)}">`:'';
-    const html=shell({title,description:w.description,path,image:sharePicture,imageAlt:w.images?.length?title:'Ralgo exhibition',schema}).replace('<main id="home-view" hidden>',`<main id="static-work" class="standalone-work"><span id="page-content"></span><a class="back-link" href="/#living">← The exhibition</a><h1>${esc(title)}</h1>${visual}<div class="work-copy"><p>${esc(w.description)}</p><p>${esc(w.credit)}</p></div><div class="source-links">${outward(w.live||w.source,w.live?'Enter the living work':'View QQL #325')}${w.id==='chimera'?'<a class="underlink" href="/works/chimera-quad/">Chimera Quad · Four worlds ↗</a>':''}</div></main><main id="home-view" hidden>`);
+    const html=shell({title,description:w.description,path,image:sharePicture,imageAlt:w.images?.length?title:'Ralgo exhibition',schema}).replace('<main id="home-view" hidden>',`<main id="static-work" class="standalone-work"><span id="page-content"></span><a class="back-link" href="/#living">← The exhibition</a><h1>${esc(title)}</h1>${visual}<div class="work-copy"><p>${esc(w.description)}</p><p>${esc(w.credit)}</p></div><div class="source-links">${outward(w.live||w.source,w.live?'Enter the living work':'View QQL #325')}${(w.extraLinks||[]).map(l=>outward(l.url,l.label)).join('')}${w.id==='chimera'?'<a class="underlink" href="/works/chimera-quad/">Chimera Quad · Four worlds ↗</a>':''}</div></main><main id="home-view" hidden>`);
     await save(path,html);
     if(w.live){
       const file=join(root,w.live);let live=await readFile(file,'utf8');
