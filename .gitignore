@@ -1,0 +1,12 @@
+node_modules/
+.env
+.env.*
+.DS_Store
+.wrangler/
+.netlify/
+
+_site/
+backup/
+original-sites-source/
+content/drafts/
+*.zip
