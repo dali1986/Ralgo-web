@@ -1,0 +1,38 @@
+.creature-actions {
+  position: fixed;
+  top: max(16px, env(safe-area-inset-top));
+  right: max(16px, env(safe-area-inset-right));
+  z-index: 100;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  max-width: calc(100vw - 32px);
+}
+.creature-actions button {
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid rgba(233,230,224,.35);
+  border-radius: 999px;
+  background: rgba(11,10,9,.88);
+  color: #e9e6e0;
+  font: 500 14px/1.35 system-ui, sans-serif;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.creature-actions button:hover { background: #292622; }
+.creature-actions button:focus-visible { outline: 2px solid #e9e6e0; outline-offset: 3px; }
+.creature-actions button:disabled { opacity: .6; cursor: wait; }
+#creature-save-status {
+  position: fixed;
+  top: 72px;
+  right: 16px;
+  z-index: 100;
+  max-width: min(300px, calc(100vw - 32px));
+  color: #e9e6e0;
+  background: rgba(11,10,9,.9);
+  font: 14px/1.5 system-ui, sans-serif;
+}
+#creature-save-status:empty { display: none; }
+#creature-save-status:not(:empty) { padding: 10px 14px; border-radius: 6px; }
+@media (max-width: 560px) { #hud { top: 76px; } }

@@ -3,7 +3,7 @@ const $=id=>document.getElementById(id), esc=s=>String(s??'').replace(/[&<>"']/g
 const viewer=$('art-viewer'),indexDialog=$('index-dialog');
 const meta={
  quasi:{title:'Quasi Dragon Studies',kicker:'PRIMARY ARTIST · HARVEY RAYNER',description:'Ralgo compositions from the Quasi Dragon Studies series by Harvey Rayner. Harvey is the primary artist and creator of the series and its generative system. Forty compositions by Ralgo are presented here.',intro:'Ralgo compositions from Harvey Rayner’s series.'},
- 'seasky-pairs':{title:'Seasky & Aria',kicker:'SEASKY · ART BLOCKS 500 / SEASKY ARIA',description:'One horizon, two expressions. Seasky is an Art Blocks 500 release in the Presents category. Each original is paired with its Seasky Aria reimagining.',intro:'100 generative originals. 103 reimagined seascapes.',source:'https://www.artblocks.io/collection/seasky-by-ralgo'},
+ 'seasky-pairs':{title:'Seasky & Aria',kicker:'SEASKY · ART BLOCKS 500 / SEASKY ARIA',description:'One horizon, two expressions. Seasky is an Art Blocks 500 release in the Presents category. Each original is paired with one selected Seasky Aria reimagining.',intro:'100 generative originals. 100 selected reimaginings.',source:'https://www.artblocks.io/collection/seasky-by-ralgo'},
  wild:{title:'Wild Wave Studies',kicker:'GENERATIVE ART · AI · ARTIST CURATION',description:'Fifty encounters with the sea at its most unruly. Generative beginnings transformed through AI and the artist’s selection.',intro:'The sea, pushed beyond the horizon.'},
  order:{title:'Order v Chaos',kicker:'OVERGROWTH III · VERSE',description:'Ordered structures encounter a growing wilderness. Follow the tension through all eighty works.',intro:'Structure meets the unruly.'},
  overgrowth:{title:'Overgrowth',kicker:'GENERATIVE ART · RALGO',description:'A brush wanders. Marks accumulate. Intricate monochrome landscapes emerge from a simple, restless system.',intro:'The first wilderness.'},
@@ -11,16 +11,18 @@ const meta={
  continuum:{title:'Continuum',kicker:'GENERATIVE ART · RALGO',description:'Random walks through colour and space become unfamiliar architectures. Explore every one of the 256 compositions.',intro:'Architectures of colour and chance.'},
  'quantum-places-lost-in-time':{title:'Quantum Places Lost in Time',kicker:'GENERATIVE ART · RALGO',description:'Two hundred imagined places, suspended between atmosphere, structure and another dimension.',intro:'Somewhere outside ordinary time.'},
  seasky:{title:'Seasky',kicker:'ART BLOCKS 500 · PRESENTS',description:'An Art Blocks 500 release in the Presents category. All one hundred originals. For the complete dialogue between each work and its reimagining, enter the paired collection.'},
- aria:{title:'Seasky Aria',kicker:'SEASKY, REIMAGINED',description:'All 103 Arias, including alternate versions. Each work retains its connection to the original Seasky.'}
+ aria:{title:'Seasky Aria',kicker:'SEASKY, REIMAGINED',description:'One selected Aria for each of the 100 Seasky originals. Each work retains its connection to the original Seasky.'}
 };
 const roomOrder=['wild','order','continuum','quantum-places-lost-in-time','overgrowth','overgrowth-x8'];
-const livingOrder=['water','chimera','illuminations','creatures','fireplace'];
+const livingOrder=['water','chimera','creatures','illuminations','fireplace'];
+const verseCollections=new Set(['wild','order','continuum','quantum-places-lost-in-time','overgrowth','overgrowth-x8']);
+const verseArchives=new Set(['continuum','quantum-places-lost-in-time','overgrowth','overgrowth-x8']);
 const viewerOrder=[...livingOrder,'chimera-quad','qql'];
 let data,collections=new Map(),pairs=[],activeCollection=null,filtered=[],visible=0,layout='wall';
 let sequence=[],viewIndex=0,viewCollection=null,liveWork=null,variant=0,pairMode='both',returnHash='#collections',returnFocus=null,homeScroll=0,artTouch=null,fireVisible=false;
 const featuredPairs=[68,0,12,57,99,33,1,80];
 const artBlocksSeasky='https://www.artblocks.io/collection/seasky-by-ralgo',artBlocks500='https://www.artblocks.io/discover/ab-500';
-function platformLinks(cid){if(['seasky','aria','seasky-pairs'].includes(cid))return link(artBlocksSeasky,'Seasky on Art Blocks')+link(artBlocks500,'Art Blocks 500');if(cid==='quasi')return link('https://rayner.art/','Harvey Rayner’s website')+link(collections.get('quasi').source,'Quasi Dragon Studies on Verse');return ['wild','order'].includes(cid)?link(collections.get(cid).source,'View on Verse'):'';}
+function platformLinks(cid){if(['seasky','aria','seasky-pairs'].includes(cid))return link(artBlocksSeasky,'Seasky on Art Blocks')+link(artBlocks500,'Art Blocks 500');if(cid==='quasi')return link('https://rayner.art/','Harvey Rayner’s website')+link(collections.get('quasi').source,'Quasi Dragon Studies on Verse');return verseCollections.has(cid)?link(collections.get(cid).source,'View on Verse'):'';}
 function img(w,{eager=false}={}){return `<img src="${esc(w.local||w.thumbnail||w.image)}" data-fallback="${esc(w.thumbnail||w.image)}" alt="${esc(w.title)}" loading="${eager?'eager':'lazy'}" decoding="async">`;}
 function link(url,label,cls='underlink'){return `<a class="${cls}" href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(label)} <span aria-hidden="true">↗</span></a>`;}
 function goto(hash,{replace=false}={}){if(replace){history.replaceState(null,'',hash);route();}else if(location.hash===hash)route();else location.hash=hash;}
@@ -33,8 +35,8 @@ function renderFeature(){const shown=featuredPairs.map(n=>pairs.find(w=>w.number
 
 function renderHome(){
  $('total-count').textContent=data.collections.filter(c=>c.id!=='quasi').reduce((n,c)=>n+c.count,0).toLocaleString('en-GB');
- $('room-grid').innerHTML=roomOrder.map(cid=>{const c=collections.get(cid),m=meta[cid], picks=c.coverNumbers?c.coverNumbers.map(n=>c.items.find(w=>w.number===n)):[c.items[0],c.items[Math.floor(c.items.length*.46)],c.items[Math.floor(c.items.length*.78)]];return `<article class="room-card"><a class="room-cover" href="#collection/${cid}" aria-label="Explore all ${c.count} ${esc(c.title)} works">${picks.map(w=>img(w)).join('')}<span aria-hidden="true">↗</span></a><div class="room-body"><div class="room-heading"><div><span class="meta">${esc(m.kicker)}</span><h3><a href="#collection/${cid}">${esc(m.title)}</a></h3></div><span class="room-count">${c.count} works</span></div><p>${esc(m.intro)}</p><div class="room-links"><a class="underlink" href="#collection/${cid}">Explore all ${c.count} works <span>↗</span></a>${['wild','order'].includes(cid)?link(c.source,'View on Verse'):''}</div></div></article>`;}).join('');
- const catalogueLinks=['seasky-pairs',...roomOrder].map(cid=>{const count=cid==='seasky-pairs'?'100 pairs · 203 works':collections.get(cid).count+' works';return `<a class="index-row" href="#collection/${cid}"><span>${esc(meta[cid].title)}</span><small>${count}</small></a>`;}).join('');
+ $('room-grid').innerHTML=roomOrder.map(cid=>{const c=collections.get(cid),m=meta[cid], picks=c.coverNumbers?c.coverNumbers.map(n=>c.items.find(w=>w.number===n)):[c.items[0],c.items[Math.floor(c.items.length*.46)],c.items[Math.floor(c.items.length*.78)]];return `<article class="room-card"><a class="room-cover" href="#collection/${cid}" aria-label="Explore all ${c.count} ${esc(c.title)} works">${picks.map(w=>img(w)).join('')}<span aria-hidden="true">↗</span></a><div class="room-body"><div class="room-heading"><div><span class="meta">${esc(m.kicker)}</span><h3><a href="#collection/${cid}">${esc(m.title)}</a></h3></div><span class="room-count">${c.count} works</span></div><p>${esc(m.intro)}</p><div class="room-links"><a class="underlink" href="#collection/${cid}">Explore all ${c.count} works <span>↗</span></a>${verseCollections.has(cid)?link(c.source,'View on Verse'):''}</div></div></article>`;}).join('');
+ const catalogueLinks=['seasky-pairs',...roomOrder].map(cid=>{const count=cid==='seasky-pairs'?'100 pairs · 200 works':collections.get(cid).count+' works';return `<a class="index-row" href="#collection/${cid}"><span>${esc(meta[cid].title)}</span><small>${count}</small></a>`;}).join('');
  const indexWork=id=>{const w=works.find(w=>w.id===id);return `<a class="index-row" href="#live/${w.id}"><span>${esc(w.shortTitle||w.title)}</span><small>${w.live?'Enter':'View'}</small></a>`;};
  $('index-list').innerHTML=`<p class="index-group-label">LATEST WORKS</p>${livingOrder.map(indexWork).join('')}<p class="index-group-label">RALGO COLLECTIONS</p>${catalogueLinks}<p class="index-group-label">COMPOSITIONS FROM OTHER ARTISTS’ SERIES</p>${indexWork('qql')}<a class="index-row" href="#collection/quasi"><span>Quasi Dragon Studies</span><small>Harvey Rayner · Ralgo compositions</small></a><p class="index-group-label">WRITING</p><a class="index-row" href="/blog"><span>Art & technology</span><small>Weekly briefings ↗</small></a>`;
  $('collection-select').innerHTML='<optgroup label="Ralgo collections">'+['seasky-pairs',...roomOrder,'seasky','aria'].map(cid=>`<option value="${cid}">${esc(meta[cid].title)}</option>`).join('')+'</optgroup><optgroup label="Compositions from other artists’ series"><option value="quasi">Harvey Rayner · Quasi Dragon Studies</option></optgroup>';
@@ -49,9 +51,9 @@ function renderCollection(cid){
  if(!changed)return;
  activeCollection=cid;setLayout('wall');$('art-search').value='';$('collection-select').value=cid;
  const m=meta[cid],c=collections.get(cid);$('collection-kicker').textContent=m.kicker;$('collection-title').textContent=m.title;$('collection-description').textContent=m.description;
- $('collection-stats').innerHTML=cid==='seasky-pairs'?'<span>100 Seaskys / 103 Arias</span><a href="#collection/seasky">All Seasky originals</a><a href="#collection/aria">All Aria versions</a>':`<span>${c.count} works · ${c.selectionLabel||'complete collection'}</span>${['seasky','aria'].includes(cid)?'<a href="#collection/seasky-pairs">View the paired collection ↗</a>':''}`;
+ $('collection-stats').innerHTML=cid==='seasky-pairs'?'<span>100 Seaskys / 100 Arias</span><a href="#collection/seasky">All Seasky originals</a><a href="#collection/aria">Selected Arias</a>':`<span>${c.count} works · ${c.selectionLabel||'complete collection'}</span>${['seasky','aria'].includes(cid)?'<a href="#collection/seasky-pairs">View the paired collection ↗</a>':''}`;
  $('collection-credit').textContent=cid==='seasky-pairs'?'Seasky by Ralgo · Art Blocks 500, Presents. Seasky Aria by Ralgo.':c.credit||'Artwork by Ralgo · Collection catalogue captured September 2026.';
- const hasSource=['wild','order','seasky','seasky-pairs','quasi'].includes(cid);$('collection-source').hidden=!hasSource;if(hasSource){$('collection-source').href=m.source||c?.source;$('collection-source').textContent=cid==='seasky'||cid==='seasky-pairs'?'Seasky on Art Blocks ↗':'View collection on Verse ↗';}else $('collection-source').removeAttribute('href');$('collection-platforms').innerHTML=platformLinks(cid);
+ const hasSource=verseCollections.has(cid)||['seasky','seasky-pairs','quasi'].includes(cid);$('collection-source').hidden=!hasSource;if(hasSource){$('collection-source').href=m.source||c?.source;$('collection-source').textContent=cid==='seasky'||cid==='seasky-pairs'?'Seasky on Art Blocks ↗':'View collection on Verse ↗';}else $('collection-source').removeAttribute('href');$('collection-platforms').innerHTML=platformLinks(cid);
  filterGallery();window.scrollTo({top:0,behavior:'instant'});document.title=m.title+' — Ralgo';
 }
 function filterGallery(){
@@ -71,7 +73,21 @@ function setFocus(on){viewer.classList.toggle('focus',on);$('viewer-focus').setA
 function setInfo(on){$('viewer-info').hidden=!on;$('viewer-info-toggle').setAttribute('aria-pressed',String(on));}
 function ensureViewer(){if(!viewer.open){returnFocus=document.activeElement;resetFocus();setInfo(false);viewer.showModal();lockScroll();removeFire();}}
 function closeViewer(){if(viewer.open){if(document.fullscreenElement)document.exitFullscreen?.().catch(()=>{});viewer.close();}$('viewer-stage').replaceChildren();liveWork=null;setInfo(false);resetFocus();lockScroll();}
-function viewImage(w,label){const f=document.createElement('figure');f.className='view-figure';const box=document.createElement('div');box.className='view-image';const low=document.createElement('img');low.src=w.local||w.thumbnail||w.image;low.alt=w.title;low.dataset.fallback=w.thumbnail||w.image;box.append(low);const hi=document.createElement('img');hi.className='high-resolution';hi.alt='';hi.dataset.managed='true';hi.onload=()=>{hi.classList.add('ready');};hi.onerror=()=>{hi.remove();const note=document.createElement('span');note.className='full-image-note';note.textContent='Preview · full-size image unavailable';box.append(note);};hi.src=w.image;box.append(hi);const caption=document.createElement('figcaption');caption.innerHTML=`<span>${esc(label)}</span><span>${esc(w.title)}</span>`;f.append(box,caption);return f;}
+function viewImage(w,label){
+ const f=document.createElement('figure');f.className='view-figure';
+ const box=document.createElement('div');box.className='view-image';
+ const low=document.createElement('img');low.src=w.local||w.thumbnail||w.image;low.alt=w.title;low.dataset.fallback=w.thumbnail||w.image;box.append(low);
+ // These imported collections have reliable local previews; Verse hosts their collection views.
+ const retiredGateway=/^https?:\/\/(?:[^/]+\.)?fxhash\.xyz\//i.test(w.image||'');
+ if(w.image&&!retiredGateway){
+  const hi=document.createElement('img');hi.className='high-resolution';hi.alt='';hi.dataset.managed='true';
+  hi.onload=()=>hi.classList.add('ready');
+  hi.onerror=()=>{hi.remove();const note=document.createElement('span');note.className='full-image-note';note.textContent='Preview · full-size image unavailable';box.append(note);};
+  hi.src=w.image;box.append(hi);
+ }
+ const caption=document.createElement('figcaption');caption.innerHTML=`<span>${esc(label)}</span><span>${esc(w.title)}</span>`;
+ f.append(box,caption);return f;
+}
 function renderArt(){
  const w=sequence[viewIndex];if(!w)return;$('viewer-back').querySelector('span').textContent='Collection';
  $('viewer-stage').replaceChildren();$('viewer-stage').className='viewer-stage';$('pair-modes').hidden=viewCollection!=='seasky-pairs';$('aria-variant-label').hidden=true;
@@ -87,7 +103,7 @@ function renderArt(){
   $('viewer-info').innerHTML=`<h3>Seasky #${w.number}<br>& its Aria${w.arias.length>1?'s':''}</h3><p>A generative original and its reimagining by Ralgo.${w.arias.length>1?' All '+w.arias.length+' Aria versions are included.':''}</p>${platformLinks('seasky-pairs')}${link(w.original.original,'Original Seasky image')}${w.original.live?link(w.original.live,'Watch the Seasky render'):''}${aria?link(aria.original,'Original Aria image'):''}${aria?.pairingNote?`<p class="pairing-notice">${esc(aria.pairingNote)}</p>`:''}<small>Seasky by Ralgo · Art Blocks 500, Presents.<br>Seasky Aria by Ralgo · Artist curation, AI and image manipulation.</small>`;
  }else{
   $('viewer-stage').append(viewImage(w,meta[viewCollection].title));
-  $('viewer-info').innerHTML=`<h3>${esc(w.title)}</h3><p>${esc(meta[viewCollection].description)}</p>${platformLinks(viewCollection)}${viewCollection==='quasi'?link(w.source,'View this composition on Verse'):''}${link(w.original,'Open full-resolution artwork')}${w.live?link(w.live,'Watch the work render'):''}${viewCollection==='aria'&&w.pair!==null?`<a class="underlink" href="#art/seasky-pairs/${w.pair}">View with Seasky #${w.pair} <span>↗</span></a>`:''}${w.pairingNote?`<p class="pairing-notice">${esc(w.pairingNote)}</p>`:''}<small>${esc(collections.get(viewCollection)?.credit||'Artwork by Ralgo.')}</small>`;
+  $('viewer-info').innerHTML=`<h3>${esc(w.title)}</h3><p>${esc(meta[viewCollection].description)}</p>${platformLinks(viewCollection)}${viewCollection==='quasi'?link(w.source,'View this composition on Verse'):''}${verseArchives.has(viewCollection)?'':link(w.original,'Open full-resolution artwork')}${!verseArchives.has(viewCollection)&&w.live?link(w.live,'Watch the work render'):''}${viewCollection==='aria'&&w.pair!==null?`<a class="underlink" href="#art/seasky-pairs/${w.pair}">View with Seasky #${w.pair} <span>↗</span></a>`:''}${w.pairingNote?`<p class="pairing-notice">${esc(w.pairingNote)}</p>`:''}<small>${esc(collections.get(viewCollection)?.credit||'Artwork by Ralgo.')}</small>`;
  }
  $('prev-art').disabled=sequence.length<2;$('next-art').disabled=sequence.length<2;$('status').textContent=`${$('viewer-title').textContent}, ${viewIndex+1} of ${sequence.length}`;
  document.title=$('viewer-title').textContent+' — Ralgo';

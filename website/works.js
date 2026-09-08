@@ -158,6 +158,8 @@ export const works = [
     ],
     "description": "Random walks and layered brush marks grow into intricate monochrome landscapes. The original series and its eight-brush successor.",
     "extraLinks": [],
+    "source": "https://verse.works/series/overgrowth-by-ralgo",
+    "sourceLabel": "View collection on Verse",
     "credit": "Artwork and generative systems by Ralgo. Selected images from Overgrowth and Overgrowth x8."
   },
   {
@@ -170,6 +172,8 @@ export const works = [
     ],
     "description": "Two- and three-dimensional random walks leave their traces in colour and space.",
     "extraLinks": [],
+    "source": "https://verse.works/series/continuum-by-ralgo",
+    "sourceLabel": "View collection on Verse",
     "credit": "Artwork and generative system by Ralgo. Representative collection image."
   },
   {
@@ -181,6 +185,8 @@ export const works = [
       "/assets/quantum-places-lost-in-time.webp"
     ],
     "description": "Unfamiliar structures and atmospheric traces suggest places suspended outside ordinary time.",
+    "source": "https://verse.works/series/quantum-places-lost-in-time-by-ralgo",
+    "sourceLabel": "View collection on Verse",
     "credit": "Artwork and generative system by Ralgo. Representative collection image.",
     "extraLinks": []
   },
