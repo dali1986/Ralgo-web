@@ -49,7 +49,7 @@ export async function buildCollections(root) {
   async function save(path,html){const file=join(root,path,'index.html');await mkdir(dirname(file),{recursive:true});await writeFile(file,html);urls.push(path);}
   for(const [id,c] of collections){
     const m=meta[id]||{title:c.title,description:c.description||`Explore ${c.title} by Ralgo.`,kicker:'GENERATIVE ART · RALGO'};
-    const cover=c.items.find(w=>image(w.original||w))?.original||c.items.find(w=>image(w));
+    const cover=id==='seasky-pairs'?c.items.find(w=>image(w.original))?.original:c.items.find(w=>image(w));
     const path=collectionPath(id);
     const credit=id==='quasi'?'Primary artist: Harvey Rayner · Composition: Ralgo':'Ralgo · ralgo.art';
     const collectionPicture=shareCard(collectionShareImage(id),[image(cover)],m.title,credit);

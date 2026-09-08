@@ -22,12 +22,12 @@ function syncPageMetadata(){
  const route=location.hash||pathRoute(location.pathname,siteBase),parts=route.slice(1).split('/');
  let description='Painterly seas, strange worlds and unlikely creatures. Generative art by Ralgo, exploring what happens when a system makes room for chance.',picture=defaultShareImage,alt='What the Water Kept by Ralgo';
  if(['collection','art'].includes(parts[0])){
-  const cid=parts[1];description=meta[cid]?.description||description;
-  const w=parts[0]==='art'?getItems(cid).find(w=>w.number===Number(parts[2])):getItems(cid).find(w=>(w.original||w).previewStatus!=='unavailable');
-  const original=w?.original||w;
+  const cid=parts[1],paired=cid==='seasky-pairs';description=meta[cid]?.description||description;
+  const w=parts[0]==='art'?getItems(cid).find(w=>w.number===Number(parts[2])):getItems(cid).find(w=>(paired?w.original:w).previewStatus!=='unavailable');
+  const original=paired?w?.original:w;
   if(original&&original.previewStatus!=='unavailable'){
    picture=parts[0]==='art'?workShareImage(cid,w.number):collectionShareImage(cid);
-   alt=w.original&&parts[0]==='art'?`Seasky #${w.number} / ${w.arias.map(ariaName).join(', ')}`:original.title;
+   alt=paired&&parts[0]==='art'?`Seasky #${w.number} / ${w.arias.map(ariaName).join(', ')}`:original.title;
   }
  }else if(parts[0]==='live'){
   const w=works.find(w=>w.id===parts[1]);if(w){description=w.description;picture=w.images?.length?liveShareImage(w.id):picture;alt=w.images?.length?(w.shortTitle||w.title):alt;}
