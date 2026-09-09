@@ -1,3 +1,4 @@
+import {shareArtwork} from './share.js';
 import {works} from './works.js';
 import {meta} from './collection-meta.js';
 import {routeHref, pathRoute} from './routes.js';
@@ -185,6 +186,7 @@ $('viewer-back').addEventListener('click',()=>goto(returnHash));$('viewer-close'
 $('viewer-fullscreen').hidden=!document.fullscreenEnabled;
 $('viewer-fullscreen').addEventListener('click',async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await viewer.requestFullscreen();}catch{$('status').textContent='Full screen is unavailable. Focus mode expands the artwork within this window.';}});
 document.addEventListener('fullscreenchange',()=>{$('viewer-fullscreen').setAttribute('aria-label',document.fullscreenElement?'Exit full screen':'Enter full screen');});
+$('viewer-share').addEventListener('click',()=>shareArtwork({title:$('viewer-title').textContent,url:routeHref(location.hash||pathRoute(location.pathname,siteBase),siteBase)},$('viewer-share')));
 $('viewer-info-toggle').addEventListener('click',()=>setInfo($('viewer-info').hidden));$('viewer-focus').addEventListener('click',()=>setFocus(!viewer.classList.contains('focus')));$('exit-focus').addEventListener('click',()=>setFocus(false));$('prev-art').addEventListener('click',()=>moveArt(-1));$('next-art').addEventListener('click',()=>moveArt(1));$('aria-variant').addEventListener('change',e=>{variant=Number(e.target.value);renderArt();});
 document.addEventListener('click',e=>{if(!data||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;const live=e.target.closest('[data-live]');if(live){e.preventDefault();returnFocus=live;goto('#live/'+live.dataset.live);return;}const routeLink=e.target.closest('a[data-route]');if(routeLink){e.preventDefault();returnFocus=routeLink;goto(routeLink.dataset.route);return;}const mode=e.target.closest('[data-pair-mode]');if(mode){pairMode=mode.dataset.pairMode;renderArt();}if(e.target.closest('[data-restart-live]')&&liveWork)startLive(liveWork);const still=e.target.closest('[data-live-still]');if(still&&liveWork)liveStill(liveWork,Number(still.dataset.liveStill));});
 document.addEventListener('keydown',e=>{if(!viewer.open||e.altKey||e.ctrlKey||e.metaKey||e.target.matches('input,select,textarea'))return;if(e.key==='ArrowLeft'){e.preventDefault();moveArt(-1);}if(e.key==='ArrowRight'){e.preventDefault();moveArt(1);}if(e.key.toLowerCase()==='f'){e.preventDefault();setFocus(!viewer.classList.contains('focus'));}});

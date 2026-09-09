@@ -132,10 +132,26 @@
   body.min #wname { font-size: clamp(15px, 2.1vw, 26px); }
   body.min #wmeta { font-size:9px; letter-spacing:.2em; }
   body.min #event { padding:14px 16px; font-size:9px; }
+
+  #controls-toggle{position:fixed;top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));z-index:12;min-height:44px;padding:10px 16px;border:1px solid #ffffff40;border-radius:24px;background:#08080cdb;color:#fff;font:14px/1.4 system-ui,sans-serif;cursor:pointer;touch-action:manipulation}
+  #controls-toggle[hidden]{display:none}
+  #controls-toggle:focus-visible,#panel button:focus-visible{outline:2px solid #eacda3;outline-offset:3px}
+  #panel{max-height:70svh;max-height:70dvh;font-size:14px;letter-spacing:.025em;visibility:hidden}
+  #panel.open{visibility:visible}
+  #pbar{position:sticky;top:-10px;z-index:2;gap:12px;background:#101015;padding:10px 4px}
+  #pclose{width:auto;min-height:44px!important;padding:10px 12px!important;border-radius:12px!important;font-size:14px;text-transform:none;white-space:nowrap}
+  #panel button{letter-spacing:.025em;text-transform:none}
+  #panel .plabel{font-size:12px;letter-spacing:.1em;opacity:.65}
+  #pmeta{font-size:12px;letter-spacing:.05em;opacity:.7}
+  #event{top:58px}#rec{top:56px}
+  body.min #controls-toggle{display:none}
+  @media(max-width:760px),(max-height:520px){#hint,#mhint{display:none}#ui{padding:16px}#wname{font-size:24px}#title{padding:22px 16px}#panel{left:12px;right:12px;bottom:max(12px,env(safe-area-inset-bottom));width:auto;border:1px solid #ffffff30;border-radius:16px}}
+  @media(prefers-reduced-motion:reduce){#panel{transition:none}}
 </style>
 </head>
 <body>
-<canvas id="c"></canvas>
+<canvas id="c" tabindex="0" aria-label="Chimera, a living world. Drag to orbit and scroll to approach."></canvas>
+<button id="controls-toggle" type="button" aria-controls="panel" aria-expanded="false">Show controls</button>
 
 <div id="ui">
   <div id="wname">&nbsp;</div>
@@ -145,16 +161,16 @@
     <b>R</b> new world &nbsp;·&nbsp; <b>C</b> camera auto/manual &nbsp;·&nbsp; <b>SPACE</b> freeze &nbsp;·&nbsp;
     <b>M</b> colonise a moon &nbsp;·&nbsp; <b>I</b> impact &nbsp;·&nbsp; <b>X</b> weather &nbsp;·&nbsp; <b>E</b> eruption &nbsp;·&nbsp; <b>U</b> pulse &nbsp;·&nbsp; <b>B</b> go beneath &nbsp;·&nbsp; <b>V</b> shed a ring &nbsp;·&nbsp; <b>A</b> mute &nbsp;·&nbsp; <b>K</b> extinction &nbsp;·&nbsp; <b>S</b> frame &nbsp;·&nbsp; <b>P</b> poster &nbsp;·&nbsp; <b>G</b> gif 20s &nbsp;·&nbsp; <b>W</b> video 10s &nbsp;·&nbsp; <b>Z</b> the end &nbsp;·&nbsp; <b>D</b> stats &nbsp;·&nbsp; <b>H</b> hide &nbsp;·&nbsp; <b>F</b> fullscreen &nbsp;·&nbsp; <b>?</b> controls
   </div>
-  <div id="mhint">Hold the screen for controls</div>
+  <div id="mhint">Tap Show controls or hold the screen</div>
 </div>
 <div id="title">Chimera</div>
 <div id="event"></div>
 <div id="rec"><i></i><span id="rect">10.0s</span></div>
 <div id="diag"></div>
-<div id="panel" aria-hidden="true">
+<div id="panel" role="region" aria-label="Chimera controls" aria-hidden="true" inert>
   <div id="pbar">
     <div><div id="pname">&nbsp;</div><div id="pmeta">&nbsp;</div></div>
-    <button id="pclose" data-k="close" aria-label="close">✕</button>
+    <button id="pclose" type="button" data-k="close">Hide controls</button>
   </div>
   <div class="pgroup"><div class="plabel">World</div><div class="pgrid">
     <button data-k="r">New world</button>
@@ -3419,7 +3435,7 @@ var params = new URLSearchParams(window.__CFG || location.search);
     moteMat.uniforms.uR0.value = 1.0 + W.disp * 0.5;
 
     // first light: the star comes up on bare ground
-    W.genLight = Math.min(1, Math.max(0, (t - 0.9) / 3.4));
+    W.genLight = 0.24 + 0.76 * Math.min(1, Math.max(0, (t - 0.2) / 1.8));
     // the ground only holds what has been sown, then gradually holds everything
     W.genDecay = 1 + 3.0 * Math.max(0, 1 - Math.max(0, t - 2.5) / 17);
     W.genDeposit = 0.35 + 0.65 * Math.min(1, Math.max(0, t - 3.0) / 13);
@@ -3450,10 +3466,13 @@ var params = new URLSearchParams(window.__CFG || location.search);
       if (g.ring > 0.55) g.ring = null;
     }
 
-    // the camera falls in from a long way out
-    var k = Math.min(1, t / 27);
-    cam.tDist = W.camDist * (2.35 - 1.35 * (k * k * (3 - 2 * k)));
-    cam.dist += (cam.tDist - cam.dist) * Math.min(1, dt * 1.2);
+    // Approach in the first few seconds; a manual gesture keeps control.
+    var stillCamera = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var k = stillCamera ? 1 : Math.min(1, t / 2.6);
+    if (!dragging && shot.kind !== 'user') {
+      cam.tDist = W.camDist * (1.3 - 0.42 * (k * k * (3 - 2 * k)));
+      cam.dist += (cam.tDist - cam.dist) * (stillCamera ? 1 : Math.min(1, dt * 2.4));
+    }
 
     if (t >= g.dur) { endGenesis(false); return 0; }
     // extra simulation steps: the network really is growing this fast
@@ -5699,11 +5718,11 @@ var params = new URLSearchParams(window.__CFG || location.search);
      Everything a keyboard can do, reachable from a phone — and not there the
      rest of the time. Summoned by holding the screen still for half a second
      (a tap seeds, a drag orbits, a hold asks for the controls), or by ? on a
-     keyboard. It leaves when tapped away from, when asked to, or on its own
-     after a quarter of a minute of being ignored. */
+     keyboard. It stays open until its close button or the artwork is tapped. */
   var elPanel = document.getElementById('panel');
   var PANEL = { open: false, timer: null };
-  var PANEL_IDLE_MS = 15000;
+  var panelLauncher = document.getElementById('controls-toggle');
+  panelLauncher.addEventListener('click', function () { togglePanel(true); });
 
   function togglePanel(show) {
     var want = show === undefined ? !PANEL.open : !!show;
@@ -5711,12 +5730,19 @@ var params = new URLSearchParams(window.__CFG || location.search);
     PANEL.open = want;
     elPanel.classList.toggle('open', want);
     elPanel.setAttribute('aria-hidden', want ? 'false' : 'true');
+    var returnFocus = !want && elPanel.contains(document.activeElement);
+    elPanel.inert = !want;
+    panelLauncher.hidden = want;
+    panelLauncher.setAttribute('aria-expanded', String(want));
+    if (want) { elPanel.scrollTop = 0; document.getElementById('pclose').focus({preventScroll:true}); }
+    else if (returnFocus) panelLauncher.focus({preventScroll:true});
     if (want) { syncPanel(); panelTouched(); }
     else if (PANEL.timer) { clearTimeout(PANEL.timer); PANEL.timer = null; }
   }
   function panelTouched() {
     if (PANEL.timer) clearTimeout(PANEL.timer);
-    PANEL.timer = setTimeout(function () { togglePanel(false); }, PANEL_IDLE_MS);
+    // Keep an explicitly opened panel available until it is dismissed.
+    PANEL.timer = null;
   }
   /* The toggles show what they will DO, not what is: "Freeze" while running,
      "Resume" while frozen. A button that reads the state and does the
@@ -5793,7 +5819,7 @@ var params = new URLSearchParams(window.__CFG || location.search);
     if (!inDisc) {
       shot.kind = 'hold'; shot.t = 0; shot.dur = 40;
       shot.look.set(0, 0, 0); shot.lookT.set(0, 0, 0); shot.dolly = 0;
-      cam.dist = cam.tDist = W.camDist * 2.35;
+      cam.dist = cam.tDist = W.camDist * 1.3;
       faceTheSun(0.62, true);
       startGenesis();
       fade = 0;
@@ -5843,6 +5869,7 @@ var params = new URLSearchParams(window.__CFG || location.search);
   }
 
   window.addEventListener('keydown', function (e) {
+    if (e.ctrlKey || e.metaKey || e.altKey || e.target.isContentEditable || /INPUT|SELECT|TEXTAREA/.test(e.target.tagName) || (e.target.tagName === 'BUTTON' && (e.key === ' ' || e.key === 'Enter'))) return;
     var k = e.key === '/' ? '?' : e.key.toLowerCase();
     WATCH.key = (k === ' ' ? 'space' : k); WATCH.keyAt = performance.now();
     if (k === ' ') e.preventDefault();
@@ -6157,7 +6184,7 @@ var params = new URLSearchParams(window.__CFG || location.search);
   shot.kind = 'hold'; shot.t = 0; shot.dur = 40;
   resetMetabolism();
   seed();
-  cam.dist = cam.tDist = W.camDist * 2.35;
+  cam.dist = cam.tDist = W.camDist * 1.3;
   faceTheSun(0.62, true);
   startGenesis();
 

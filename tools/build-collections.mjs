@@ -1,3 +1,4 @@
+import {illuminationsPreview} from './illuminations-preview.mjs';
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {join,dirname} from 'node:path';
 import {meta} from '../website/collection-meta.js';
@@ -10,6 +11,7 @@ import {collectionShareImage,workShareImage,liveShareImage} from '../website/sha
 import {renderShareCards} from './build-share-cards.mjs';
 
 export async function buildCollections(root) {
+  await writeFile(join(root,'art/illuminations-preview.html'),illuminationsPreview(await readFile(join(root,'art/illuminations.html'),'utf8')));
   const data=JSON.parse(await readFile(join(root,'data/catalogue.json'),'utf8'));
   const collections=new Map(data.collections.map(c=>[c.id,c]));
   const arias=collections.get('aria').items;
@@ -93,8 +95,13 @@ export async function buildCollections(root) {
     await save(path,html);
     if(w.live){
       const file=join(root,w.live);let live=await readFile(file,'utf8');
-      live=live.replace('</head>',headExtras({title,description:w.description,path:w.live,image:sharePicture,imageAlt:w.images?.length?title:'Ralgo exhibition',schema})+'<link rel="stylesheet" href="/art-home.css"></head>');
-      live=live.replace('</body>','<a class="art-home" href="/" aria-label="Return to Ralgo’s exhibition"><span>←</span> RALGO</a><script src="/art-home.js"></script></body>');
+      live=live.replace('</head>',headExtras({title,description:w.description,path:w.live,image:sharePicture,imageAlt:w.images?.length?title:'Ralgo exhibition',schema})+'<link rel="stylesheet" href="/art-home.css"><link rel="stylesheet" href="/share.css"></head>');
+      const controls=`<div class="art-links"><a class="art-home" href="/" aria-label="Return to Ralgo’s exhibition"><span>←</span> RALGO</a><button type="button" class="art-share" data-share-url="${path}" data-share-title="${esc(title)}">Share</button></div><script type="module" src="/art-home.js"></script>`;
+      // Quad embeds another complete HTML document inside a JavaScript string.
+      // Its inner closing body must remain untouched.
+      const bodyEnd=live.lastIndexOf('</body>');
+      if(bodyEnd<0)throw new Error('Artwork is missing its closing body: '+w.id);
+      live=live.slice(0,bodyEnd)+controls+live.slice(bodyEnd);
       await writeFile(file,live);
     }
   }

@@ -41,7 +41,7 @@ for (const path of await files(output)) {
   let text = path.endsWith('.html') ? applyEngagement(original) : original;
   if (base && path.endsWith('.json')) text = JSON.stringify(mapJSON(JSON.parse(text)), null, 2) + '\n';
   if (base && path.endsWith('.html')) {
-    text = text.replace(/(\b(?:href|src|poster|data-fallback)\s*=\s*["'])\/(?!\/)/g, '$1' + base + '/');
+    text = text.replace(/(\b(?:href|src|poster|data-fallback|data-share-url)\s*=\s*["'])\/(?!\/)/g, '$1' + base + '/');
     text = text.replace(/(\bsrcset\s*=\s*")([^"]+)(")/g, (_,a,value,z)=>a+value.split(',').map(item=>item.trim().replace(/^\/(?!\/)/,base+'/')).join(', ')+z);
   }
   if (base && path.endsWith('.js')) {
