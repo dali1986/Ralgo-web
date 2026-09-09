@@ -17,6 +17,7 @@ let gl,program,texture,previousTexture,styleTexture,nextStyleTexture,sea,frameHa
 let ensemble,seas=[],blend=1,exporting=false;
 let playbackRate=2;
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const compactControls=matchMedia('(max-width:760px), (max-height:520px)');
 // Touch-first devices get their own workload from the first frame. This is
 // fixed for the visit so rotating the phone cannot alter its evolving seas.
 const mobilePainting=matchMedia('(pointer:coarse)').matches;
@@ -30,17 +31,24 @@ let activePointer=null,displayedCamera=null;
 const disturbances=[];
 const sound=new WaterSound();
 const performanceBudget=new PaintingPerformance({mobile:mobilePainting});
-let hudVisible=true,hudBeforeImmersion=true,savingImage=false,videoUrl=null,imageUrl=null,resumeAfterPreview=false;
+let hudVisible=!compactControls.matches,hudBeforeImmersion=hudVisible,savingImage=false,videoUrl=null,imageUrl=null,resumeAfterPreview=false;
 const recorder=new ArtworkRecorder(canvas,sound,{onState:updateRecordingControl,onComplete:videoReady,onError:message=>{announce(message);$('capture-status').textContent=message;}});
 function setHudVisible(visible){
+  const panel=$('painting-controls'),returnFocus=!visible&&panel.contains(document.activeElement),openingFromRestore=visible&&document.activeElement===$('show-hud');
   hudVisible=visible;
-  if(!visible&&document.activeElement?.closest('.chrome'))canvas.focus({preventScroll:true});
+  panel.inert=!visible;panel.setAttribute('aria-hidden',String(!visible));
   for(const element of document.querySelectorAll('.chrome')){element.inert=!visible;element.setAttribute('aria-hidden',String(!visible));}
   document.body.classList.toggle('hud-hidden',!visible);$('show-hud').hidden=visible;
   $('hud-toggle').setAttribute('aria-pressed',String(visible));
-  $('touch-hide-hud').setAttribute('aria-expanded',String(visible));$('show-hud').setAttribute('aria-expanded',String(visible));
-  if(visible&&document.activeElement===$('show-hud'))$(matchMedia('(pointer:coarse), (max-width:760px)').matches?'touch-hide-hud':'hud-toggle').focus({preventScroll:true});
+  for(const id of ['touch-hide-hud','mobile-controls-close','show-hud'])$(id).setAttribute('aria-expanded',String(visible));
+  if(returnFocus)$('show-hud').focus({preventScroll:true});
+  if(openingFromRestore){
+    panel.scrollTop=0;
+    $(compactControls.matches?'mobile-controls-close':mobilePainting?'touch-hide-hud':'hud-toggle').focus({preventScroll:true});
+  }
 }
+setHudVisible(hudVisible);
+document.body.classList.add('controls-ready');
 function toggleHud(){setHudVisible(!hudVisible);}
 function updateRecordingControl({state,elapsed=0,limit=30}){
   const active=state!=='idle',stopping=state==='stopping';
@@ -445,6 +453,7 @@ $('record-button').addEventListener('click',toggleRecording);
 $('record-stop').addEventListener('click',()=>recorder.stop());
 $('hud-toggle').addEventListener('click',toggleHud);
 $('touch-hide-hud').addEventListener('click',()=>setHudVisible(false));
+$('mobile-controls-close').addEventListener('click',()=>setHudVisible(false));
 $('show-hud').addEventListener('click',()=>setHudVisible(true));
 $('capture-dialog').addEventListener('close',()=>$('video-preview').pause());
 $('video-preview').addEventListener('play',()=>{resumeAfterPreview=running;if(running)togglePlayback();});
@@ -486,7 +495,7 @@ document.addEventListener('keydown',event=>{
   if(event.key.toLowerCase()==='b'){event.preventDefault();if(!event.repeat)toggleRecording();return;}
   if(event.key.toLowerCase()==='s'){event.preventDefault();if(!event.repeat)saveImage();return;}
   if(event.key==='Escape'){
-    if(document.body.classList.contains('immersed'))immerse();else if(!hudVisible)setHudVisible(true);
+    if(document.body.classList.contains('immersed'))immerse();else if(compactControls.matches&&hudVisible)setHudVisible(false);else if(!hudVisible)setHudVisible(true);
     return;
   }
   if(event.key.toLowerCase()==='h'){

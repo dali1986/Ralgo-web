@@ -22,6 +22,7 @@
 @media(min-width:761px){body:not(.hud-hidden) #record-stop{bottom:112px}}
 
 .touch-hud-button{display:none}
+.controls-shell{display:contents}.mobile-controls-close{display:none}
 .medium-select-wrap{display:none}
 body[data-medium=whiteboard] .chrome{--ink:#17283b;--muted:#41546b;--gold:#135dcc;--line:#243d5d44;color:var(--ink)}
 body[data-medium=whiteboard] .chrome button:hover{color:#0752c8}
@@ -49,3 +50,35 @@ body[data-medium=pencil] .chrome .medium-select-wrap select{color-scheme:light;b
 @media(pointer:coarse),(max-width:760px){.touch-hud-button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;max-width:100%;margin-top:14px;padding:10px 17px;border:1px solid #d5dacc70;border-radius:24px;background:#0b2026d9;color:var(--ink);font-size:.875rem;line-height:1.4;touch-action:manipulation}.masthead>div{min-width:0}#show-hud{min-height:44px;max-width:calc(100% - 32px);top:max(16px,env(safe-area-inset-top));right:max(16px,env(safe-area-inset-right));background:#0b2026e8;border-color:#d5dacc90;opacity:1;touch-action:manipulation}}
 
 @media(max-width:760px){.medium-switch{display:none}.medium-select-wrap{display:flex;align-items:center;gap:10px;max-width:390px;margin-top:14px;color:var(--ink);font-size:.875rem;pointer-events:auto}.medium-select-wrap select{min-width:0;flex:1;min-height:44px;max-width:100%;padding:10px 30px 10px 12px;border:1px solid #a0b6ad88;border-radius:12px;font:inherit;color:#f3e7d2;background:#10262ded;cursor:pointer}.chrome .medium-select-wrap select{pointer-events:auto}.hud-hidden .medium-select-wrap,.hud-hidden .chrome .medium-select-wrap select{pointer-events:none}body[data-medium=ink] .medium-select-wrap select{background:#f6f0e5ed;color:#263c45;border-color:#25455366}}
+
+/* A phone opens on the painting; its controls share one bounded, scrollable panel. */
+@media(max-width:760px),(max-height:520px){
+  #painting-controls{display:block;position:absolute;z-index:4;left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));max-height:70svh;max-height:70dvh;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;padding:0 16px 16px;border:1px solid var(--line);border-radius:16px;background:#112327f5;box-shadow:0 12px 40px #0005;pointer-events:auto}
+  .hud-hidden #painting-controls,body:not(.controls-ready) #painting-controls{visibility:hidden;pointer-events:none}
+  #painting-controls .mobile-controls-close{display:block;position:sticky;top:0;z-index:3;min-height:44px;margin:0 0 8px auto;padding:10px 14px;border:1px solid var(--line);border-radius:0 0 14px 14px;background:var(--panel);color:var(--ink);font-size:.875rem;touch-action:manipulation}
+  #painting-controls .chrome{position:static;width:auto;pointer-events:auto}
+  #painting-controls .masthead{padding:0;gap:12px;align-items:center}
+  #painting-controls .masthead .eyebrow,.keyboard-hint,#touch-hide-hud,#hud-toggle{display:none}
+  #painting-controls h1{font-size:1.5rem}
+  #painting-controls #interaction-hint{margin-top:8px;font-size:.875rem}
+  #painting-controls #about-button{font-size:.875rem;white-space:normal;min-height:44px;flex:0 0 60px}
+  #painting-controls #about-button span{display:none}
+  #painting-controls .medium-switch{display:none}
+  #painting-controls .medium-select-wrap{display:flex;align-items:center;gap:10px;margin-top:12px;color:var(--ink);pointer-events:auto}
+  #painting-controls .medium-select-wrap select{flex:1;min-width:0;max-width:100%;min-height:44px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);font:inherit;font-size:1rem;pointer-events:auto}
+  #painting-controls .toolbar{padding:16px 0 0;gap:12px;display:flex;flex-wrap:wrap}
+  #painting-controls .work-state{width:100%;flex-basis:100%;justify-content:space-between;gap:12px}
+  #painting-controls .work-state>.divider{display:none}
+  #painting-controls .age{flex-direction:row;gap:8px;font-size:.75rem}
+  #painting-controls .controls{width:100%;display:flex;flex-wrap:wrap;justify-content:flex-start;gap:8px;border-top:1px solid var(--line);padding-top:12px}
+  #painting-controls .controls button{min-height:44px;margin:0;font-size:.875rem}
+  #painting-controls .icon-button{width:44px;flex:0 0 44px}
+  #painting-controls .control-divider{display:none}
+  .veil{display:none}
+  #show-hud{top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));min-height:44px;max-width:calc(100% - 24px);opacity:1;background:#0b2026e8;touch-action:manipulation}
+  #notice{top:max(64px,env(safe-area-inset-top));bottom:auto;margin:0}
+  body:not(.hud-hidden) #record-stop{top:max(12px,env(safe-area-inset-top));bottom:auto}
+  body[data-medium=whiteboard] #painting-controls{--panel:#f4f7fc;--ink:#17283b;--line:#243d5d44;background:#f4f7fcfa;color:var(--ink)}
+  body[data-medium=pencil] #painting-controls{--panel:#faf9f4;--ink:#282c32;--line:#343a4644;background:#faf9f4fa;color:var(--ink)}
+  body[data-medium=ink] #painting-controls{--panel:#f6f0e5;--ink:#152c38;--line:#25455344;background:#f6f0e5fa;color:var(--ink)}
+}

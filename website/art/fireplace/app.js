@@ -3,6 +3,7 @@
   const $ = id => document.getElementById(id);
   const canvas = $('fire');
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const compactControls = window.matchMedia('(max-width:760px), (max-height:520px)');
   const state = {time:0,heat:1,palette:0,clarity:.90,volume:.65,auto:!reducedMotion,gap:25,paused:false,immersed:false,vision:null,next:6,frame:0,lastMask:-1,pointer:[0,.3,0],base:.31,height:.44,spread:.60};
   state.cue=[0,0,0,0];state.camera=[1,0,0];state.event=[0,.6,-1,0];
   state.ambient=false;state.quiet=true;state.hudIdle=false;
@@ -151,7 +152,7 @@
   }
   function armHud(){
     clearTimeout(hudTimer);
-    if(!state.quiet||state.paused||state.immersed||!$('settings').hidden||!$('prompt-panel').hidden||document.hidden||contextLost||pointerHeld)return;
+    if(compactControls.matches||!state.quiet||state.paused||state.immersed||!$('settings').hidden||!$('prompt-panel').hidden||document.hidden||contextLost||pointerHeld)return;
     hudTimer=setTimeout(()=>{
       if(keyboardNavigation&&document.activeElement?.closest('.chrome'))return;
       state.hudIdle=true;document.body.classList.add('watching');
@@ -160,7 +161,19 @@
   function wakeHud(){
     state.hudIdle=false;document.body.classList.remove('watching');armHud();
   }
-  function immerse(value){prompts?.close();state.immersed=value;document.body.classList.toggle('immersed',value);$('restore').hidden=!value;if(value)$('restore').focus();else $('immerse').focus();$('settings').hidden=true;$('settings-toggle').setAttribute('aria-expanded','false');wakeHud();}
+  function immerse(value,moveFocus=true){
+    prompts?.close();state.immersed=value;
+    document.body.classList.toggle('immersed',value);
+    $('fire-controls').inert=value;$('fire-controls').setAttribute('aria-hidden',String(value));
+    $('restore').hidden=!value;$('restore').setAttribute('aria-expanded',String(!value));
+    $('mobile-controls-close').setAttribute('aria-expanded',String(!value));
+    $('settings').hidden=true;$('settings-toggle').setAttribute('aria-expanded','false');
+    if(!value)$('fire-controls').scrollTop=0;
+    if(moveFocus)$(value?'restore':compactControls.matches?'mobile-controls-close':'immerse').focus({preventScroll:true});
+    wakeHud();
+  }
+  immerse(compactControls.matches,false);
+  document.body.classList.add('controls-ready');
   function pointerEvent(e){
     if(state.hudIdle){wakeHud();return;}
     const uvx=e.clientX/window.innerWidth,uvy=1-e.clientY/window.innerHeight;
@@ -204,10 +217,11 @@
   $('quiet').addEventListener('change',()=>{state.quiet=$('quiet').checked;wakeHud();});
   $('auto').addEventListener('change',()=>{state.auto=$('auto').checked;state.next=state.time+(state.ambient?nextGap():Math.min(state.gap,8));});
   $('pause').addEventListener('click',()=>setPaused(!state.paused));
+  $('mobile-controls-close').addEventListener('click',()=>immerse(true));
   $('immerse').addEventListener('click',()=>immerse(true));$('restore').addEventListener('click',()=>immerse(false));
-  function settings(open){if(open)prompts?.close();$('settings').hidden=!open;$('settings-toggle').setAttribute('aria-expanded',String(open));wakeHud();}
+  function settings(open){if(open)prompts?.close();$('settings').hidden=!open;$('settings-toggle').setAttribute('aria-expanded',String(open));if(open&&compactControls.matches)$('close-settings').focus({preventScroll:false});wakeHud();}
   prompts=createPromptUI({summon,wake:wakeHud,closeSettings:()=>settings(false)});
-  $('settings-toggle').addEventListener('click',()=>settings($('settings').hidden));$('close-settings').addEventListener('click',()=>settings(false));
+  $('settings-toggle').addEventListener('click',()=>settings($('settings').hidden));$('close-settings').addEventListener('click',()=>{settings(false);$('settings-toggle').focus({preventScroll:true});});
   document.addEventListener('pointermove',()=>{keyboardNavigation=false;wakeHud();},{passive:true});
   document.addEventListener('pointerdown',e=>{keyboardNavigation=false;pointerHeld=true;wakeHud();if(!$('settings').contains(e.target)&&!$('settings-toggle').contains(e.target))settings(false);},{passive:true});
   for(const event of ['pointerup','pointercancel'])document.addEventListener(event,()=>{pointerHeld=false;armHud();},{passive:true});
@@ -219,7 +233,7 @@
     if(e.code==='Space'){e.preventDefault();setPaused(!state.paused);}
     if(e.code==='KeyV')summon($('scene').value);
     if(e.code==='KeyH')immerse(!state.immersed);
-    if(e.code==='Escape'){if(!$('prompt-panel').hidden)prompts.close(true);settings(false);if(state.immersed)immerse(false);}
+    if(e.code==='Escape'){if(!$('prompt-panel').hidden)prompts.close(true);else if(!$('settings').hidden){settings(false);$('settings-toggle').focus();}else if(compactControls.matches&&!state.immersed)immerse(true);else if(state.immersed)immerse(false);}
   });
   // Start only on request. The audio thread keeps the hearth alive between frames.
   function soundFeedback(){

@@ -2,20 +2,24 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#0b181b">
   <meta name="description" content="What the Water Kept — a generative painting by Ralgo. Three to fifty seas exchange wave energy, carry each other’s pigment, and fold together in a shared current.">
   <title>What the Water Kept — Ralgo</title>
   <link rel="icon" href="./mark.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./style.css?v=38">
+  <link rel="stylesheet" href="./style.css?v=39">
 </head>
 <body>
   <main id="artwork" aria-label="What the Water Kept, a moving generative painting">
     <canvas id="sea" tabindex="0" aria-describedby="interaction-hint" aria-keyshortcuts="0 1 2 3 4 5 6 7 8 9 h a u b s j t c k l p" aria-label="Three to fifty interacting seas. Click or tap for ripples, drag to stir, or press Enter for a ripple at the center. Press P to switch painting styles, K to raise a liquid sculpture or L to turn sculpture off and on."></canvas>
     <div class="veil top-veil" aria-hidden="true"></div>
     <div class="veil bottom-veil" aria-hidden="true"></div>
+    <div id="loading" role="status"><span class="loading-line"></span><p>The seas are meeting.</p></div>
+    <section id="unavailable" hidden><h2>A different window on the water.</h2><p>This painting needs a browser with WebGL 2 enabled. Please open it in a recent version of Safari, Chrome, Firefox or Edge with graphics acceleration enabled.</p><button onclick="location.reload()">Try again</button></section>
+    <div id="painting-controls" class="controls-shell">
+      <button id="mobile-controls-close" class="mobile-controls-close" aria-controls="painting-controls" aria-expanded="true">Hide controls</button>
     <header id="painting-header" class="chrome masthead">
-      <div><p class="eyebrow">RALGO <span>·</span> A GENERATIVE PAINTING</p><h1>What the Water Kept</h1><p id="interaction-hint">Click or tap to ripple · Drag to stir<br>0–9 for events · P switches style · U hides controls</p>
+      <div><p class="eyebrow">RALGO <span>·</span> A GENERATIVE PAINTING</p><h1>What the Water Kept</h1><p id="interaction-hint">Click or tap to ripple · Drag to stir<span class="keyboard-hint"><br>0–9 for events · P switches style · U hides controls</span></p>
         <fieldset class="medium-switch"><legend>Painting style</legend>
           <label><input type="radio" name="painting-medium" value="original" checked><span>Original</span></label>
           <label><input type="radio" name="painting-medium" value="oil"><span>Oil / impasto</span></label>
@@ -31,8 +35,6 @@
         <button id="touch-hide-hud" class="touch-hud-button" aria-controls="painting-header painting-toolbar" aria-expanded="true">Hide controls</button></div>
       <button id="about-button" class="text-button" aria-label="About the artwork">About the work <span aria-hidden="true">↗</span></button>
     </header>
-    <div id="loading" role="status"><span class="loading-line"></span><p>The seas are meeting.</p></div>
-    <section id="unavailable" hidden><h2>A different window on the water.</h2><p>This painting needs a browser with WebGL 2 enabled. Please open it in a recent version of Safari, Chrome, Firefox or Edge with graphics acceleration enabled.</p><button onclick="location.reload()">Try again</button></section>
     <footer id="painting-toolbar" class="chrome toolbar">
       <div class="work-state"><button id="seed-button" class="seed-button" title="Choose a seed"><span class="eyebrow">SEA</span><span id="seed-label">000042</span><span class="seed-edit" aria-hidden="true">↗</span></button><span class="divider"></span><div class="age"><span id="tide-label">First tide</span><span id="elapsed">00:00</span></div></div>
       <div class="controls">
@@ -50,8 +52,9 @@
         <button id="immerse" class="icon-button" aria-label="Enter immersive view" title="Immerse · F"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H3v6m12-6h6v6M3 15v6h6m12-6v6h-6"/></svg></button>
       </div>
     </footer>
+    </div>
     <button id="leave-immersion" hidden aria-label="Leave immersive view">Return <span aria-hidden="true">↙</span></button>
-    <button id="show-hud" hidden aria-controls="painting-header painting-toolbar" aria-expanded="false" title="Show controls · U or Escape">Show controls</button>
+    <button id="show-hud" hidden aria-controls="painting-controls" aria-expanded="false" title="Show controls · U or Escape">Show controls</button>
     <button id="record-stop" hidden aria-label="Stop recording"><span class="record-dot" aria-hidden="true"></span><span id="record-clock">00:00</span><span id="record-stop-label">Stop</span></button>
     <p id="notice" role="status" aria-live="polite"></p>
   </main>
@@ -135,6 +138,6 @@
     <p class="small-note">For an unobstructed view, press <kbd>U</kbd> or choose Hide controls. Show controls, <kbd>U</kbd> or Escape brings them back.</p>
   </dialog>
   <dialog id="seed-dialog" aria-labelledby="seed-title"><button class="dialog-close" data-close aria-label="Close">×</button><p class="eyebrow">A DIFFERENT BEGINNING</p><h2 id="seed-title">Choose a seed.</h2><form id="seed-form"><label for="seed-input">Seed · 1–999999</label><input id="seed-input" name="seed" type="number" min="1" max="999999" step="1" required inputmode="numeric"><button type="submit" class="primary-button">Enter this meeting <span aria-hidden="true">↗</span></button></form><p class="small-note">The same seed begins the same history. The address keeps your chosen seed.</p></dialog>
-  <script type="module" src="./art.js?v=38"></script>
+  <script type="module" src="./art.js?v=39"></script>
 </body>
 </html>

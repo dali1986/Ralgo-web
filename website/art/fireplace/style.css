@@ -16,3 +16,43 @@
 .scene-caption h1{overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 #scene{max-width:260px;text-overflow:ellipsis}
 @media(max-width:480px){#scene{max-width:calc(100vw - 160px)}.prompt-panel{position:fixed;inset:auto 0 0;width:100%;max-height:calc(100dvh - 36px);padding:20px}.prompt-panel .settings-heading{font-size:22px}}
+
+.controls-shell{display:contents}.mobile-controls-close{display:none}
+/* Keep the fire clear until the viewer asks for its controls. */
+@media(max-width:760px),(max-height:520px){
+  #fire-controls{display:block;position:fixed;z-index:4;left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));max-height:70svh;max-height:70dvh;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;padding:0 16px 16px;border:1px solid #c98d464d;border-radius:16px;background:#170f0bf5;box-shadow:0 12px 40px #0007;pointer-events:auto}
+  .immersed #fire-controls,body:not(.controls-ready) #fire-controls{visibility:hidden;pointer-events:none}
+  #fire-controls .mobile-controls-close{display:block;position:sticky;top:0;z-index:6;min-height:44px;margin:0 0 8px auto;padding:10px 14px;border:1px solid #c98d464d;border-radius:0 0 14px 14px;background:#170f0b;color:#f3e1c9;font-size:14px;touch-action:manipulation}
+  #fire-controls header,#fire-controls main{position:static;inset:auto;transform:none;width:100%;padding:0;pointer-events:auto}
+  #fire-controls header{gap:14px;margin-bottom:16px}
+  #fire-controls .wordmark{font-size:30px}
+  #fire-controls .wordmark span{font-size:12px;letter-spacing:1px;margin-top:6px}
+  #fire-controls .text-button{font-size:14px;min-height:44px}
+  #fire-controls #immerse{display:none}
+  #fire-controls .scene-caption{margin:0 0 16px;text-align:left}
+  #fire-controls .scene-caption .eyebrow,#fire-controls .scene-caption p{display:none}
+  #fire-controls .scene-caption h1{font-size:21px;margin:0}
+  #fire-controls .control-bar{padding:0;gap:12px;flex-wrap:wrap;border:0;box-shadow:none;background:none;backdrop-filter:none}
+  #fire-controls .control-group:first-child{flex:1 1 100%;min-width:0}
+  #fire-controls .control-group>label{font-size:12px;letter-spacing:1px}
+  #fire-controls .select-row{gap:8px}
+  #fire-controls #scene{min-width:0;max-width:none;flex:1}
+  #fire-controls select{min-height:44px;font-size:16px}
+  #fire-controls .summon{min-height:44px;font-size:14px}
+  #fire-controls .heat-group{order:3;flex:1 0 100%;padding:0;border:0}
+  #fire-controls .palette-group{max-width:none;flex:1;display:flex;align-items:center;gap:12px;padding:0;border:0}
+  #fire-controls .palette-group>label{margin:0}
+  #fire-controls .palette-group select{min-width:0;flex:1}
+  #fire-controls .icon-button{min-width:44px;width:44px;height:44px}
+  #fire-controls input[type=range]{height:44px}
+  #fire-controls .footnote{flex-wrap:wrap;gap:8px 16px;padding-top:12px}
+  #fire-controls .footnote button{font-size:14px;min-height:44px}
+  #fire-controls #interaction-hint{display:none}
+  #fire-controls .settings,#fire-controls .prompt-panel{position:static;inset:auto;transform:none;width:100%;max-width:none;max-height:none;overflow:visible;margin-top:16px;padding:16px;box-shadow:none;backdrop-filter:none}
+  #fire-controls .settings>label{font-size:14px}
+  #fire-controls .keys{display:none}
+  #restore{top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));bottom:auto;left:auto;transform:none;min-height:44px;max-width:calc(100% - 24px);font-size:14px;opacity:1;background:#170f0be8;touch-action:manipulation}
+  #restore span{display:none}
+  #notice{top:max(64px,env(safe-area-inset-top));max-width:calc(100% - 24px);margin:0}
+}
+.gallery-preview .controls-shell{display:none!important}
