@@ -32,7 +32,7 @@ export async function validateSite(root, base = '') {
         const markup = text.replace(/(<script\b[^>]*>)[\s\S]*?<\/script>/gi, '$1</script>');
         for (const match of markup.matchAll(/\b(?:src|href|poster|data-fallback)\s*=\s*(["'])(.*?)\1/g)) await check(match[2], page);
         for (const match of markup.matchAll(/\bsrcset="([^"]+)"/g))for(const candidate of match[1].split(','))await check(candidate.trim().split(/\s+/)[0],page);
-        if(page==='index.html'||/^(collections|works|blog)\//.test(page)){
+        if(page==='index.html'||/^(collections|works|blog|experiments)\//.test(page)){
           if((markup.match(/<h1\b/g)||[]).length!==1)errors.push(page+': expected one H1');
           for(const marker of ['rel="canonical"','property="og:title"','property="og:image"','name="twitter:card"','rel="icon"'])if(!markup.includes(marker))errors.push(page+': missing '+marker);
           const og=markup.match(/property="og:image" content="([^"]+)"/)?.[1];

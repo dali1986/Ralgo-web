@@ -1,3 +1,4 @@
+import {chromaticPreview} from './chromatic-preview.mjs';
 import {illuminationsPreview} from './illuminations-preview.mjs';
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {join,dirname} from 'node:path';
@@ -11,6 +12,7 @@ import {collectionShareImage,workShareImage,liveShareImage} from '../website/sha
 import {renderShareCards} from './build-share-cards.mjs';
 
 export async function buildCollections(root) {
+  await writeFile(join(root,'art/chromatic-turbulence-preview.html'),chromaticPreview(await readFile(join(root,'art/chromatic-turbulence.html'),'utf8')));
   await writeFile(join(root,'art/illuminations-preview.html'),illuminationsPreview(await readFile(join(root,'art/illuminations.html'),'utf8')));
   const data=JSON.parse(await readFile(join(root,'data/catalogue.json'),'utf8'));
   const collections=new Map(data.collections.map(c=>[c.id,c]));
@@ -41,7 +43,7 @@ export async function buildCollections(root) {
     return `<article class="art-card"><a class="art-tile" href="${workPath(id,w.number)}" data-route="#art/${id}/${w.number}"><span class="art-image">${thumbnail(w)}</span><span class="tile-caption"><strong>${esc(w.title)}</strong><small>↗</small></span></a></article>`;
   }
   function shell(options){
-    let html=home.replace(/<head>[\s\S]*?<\/head>/,`<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#101110"><title>${esc(options.title)} — Ralgo</title><meta name="description" content="${esc(options.description)}">${headExtras(options)}<link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/blog.css"><script type="module" src="/app.js"></script><script type="module" src="/artwork-thumbnails.js"></script></head>`);
+    let html=home.replace(/<head>[\s\S]*?<\/head>/,`<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#101110"><title>${esc(options.title)} — Ralgo</title><meta name="description" content="${esc(options.description)}">${headExtras(options)}<link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/blog.css"><link rel="stylesheet" href="/share.css"><script type="module" src="/app.js"></script><script type="module" src="/artwork-thumbnails.js"></script></head>`);
     html=html.replace('<body>',`<body data-site-base="${esc(siteBase)}">`).replace('<main id="home-view">','<main id="home-view" hidden>');
     html=html.replace('loading="eager" fetchpriority="high"','loading="lazy"');
     html=html.replace('<h1 id="home-title">','<h2 id="home-title">').replace(/(<h2 id="home-title">[\s\S]*?)<\/h1>/,'$1</h2>');
@@ -49,6 +51,8 @@ export async function buildCollections(root) {
     return html;
   }
   async function save(path,html){const file=join(root,path,'index.html');await mkdir(dirname(file),{recursive:true});await writeFile(file,html);urls.push(path);}
+  const experimentsHTML=shell({title:'Other Experiments',description:'Living worlds, stories made of light, unlikely creatures and a dreaming fire. Experiments by Ralgo.',path:'/experiments/'}).replace('<main id="experiments-view" hidden>','<main id="experiments-view"><span id="page-content"></span>').replace('<h2 id="experiments-title">Other <em>Experiments</em></h2>','<h1 id="experiments-title">Other <em>Experiments</em></h1>');
+  await save('/experiments/',experimentsHTML);
   for(const [id,c] of collections){
     const m=meta[id]||{title:c.title,description:c.description||`Explore ${c.title} by Ralgo.`,kicker:'GENERATIVE ART · RALGO'};
     const cover=id==='seasky-pairs'?c.items.find(w=>image(w.original))?.original:c.items.find(w=>image(w));
@@ -91,12 +95,12 @@ export async function buildCollections(root) {
     const schema={'@type':'VisualArtwork',name:title,description:w.description,url:absolute(path),creator:w.id==='qql'?[{'@type':'Person',name:'Tyler Hobbs'},{'@type':'Person',name:'Dandelion Mané'}]:artist};
     if(w.id==='qql')schema.contributor=artist;
     const visual=w.images?.[0]?`<img class="standalone-image" src="${esc(picture)}" alt="${esc(title)}">`:'';
-    const html=shell({title,description:w.description,path,image:sharePicture,imageAlt:w.images?.length?title:'Ralgo exhibition',schema}).replace('<main id="home-view" hidden>',`<main id="static-work" class="standalone-work"><span id="page-content"></span><a class="back-link" href="/#living">← The exhibition</a><h1>${esc(title)}</h1>${visual}<div class="work-copy"><p>${esc(w.description)}</p><p>${esc(w.credit)}</p></div><div class="source-links">${outward(w.live||w.source,w.live?'Enter the living work':'View QQL #325')}${(w.extraLinks||[]).map(l=>outward(l.url,l.label)).join('')}${w.id==='chimera'?'<a class="underlink" href="/works/chimera-quad/">Chimera Quad · Four worlds ↗</a>':''}</div></main><main id="home-view" hidden>`);
+    const html=shell({title,description:w.description,path,image:sharePicture,imageAlt:w.images?.length?title:'Ralgo exhibition',schema}).replace('<main id="home-view" hidden>',`<main id="static-work" class="standalone-work"><span id="page-content"></span><a class="back-link" href="${w.section==='experiments'?'/experiments/':'/#living'}">← ${w.section==='experiments'?'Other Experiments':'The exhibition'}</a><h1>${esc(title)}</h1>${visual}<div class="work-copy"><p>${esc(w.description)}</p><p>${esc(w.credit)}</p></div><div class="source-links">${outward(w.live||w.source,w.live?'Enter the living work':'View QQL #325')}${(w.extraLinks||[]).map(l=>outward(l.url,l.label)).join('')}${w.id==='chimera'?'<a class="underlink" href="/works/chimera-quad/">Chimera Quad · Four worlds ↗</a>':''}</div></main><main id="home-view" hidden>`);
     await save(path,html);
     if(w.live){
       const file=join(root,w.live);let live=await readFile(file,'utf8');
       live=live.replace('</head>',headExtras({title,description:w.description,path:w.live,image:sharePicture,imageAlt:w.images?.length?title:'Ralgo exhibition',schema})+'<link rel="stylesheet" href="/art-home.css"><link rel="stylesheet" href="/share.css"></head>');
-      const controls=`<div class="art-links"><a class="art-home" href="/" aria-label="Return to Ralgo’s exhibition"><span>←</span> RALGO</a><button type="button" class="art-share" data-share-url="${path}" data-share-title="${esc(title)}">Share</button></div><script type="module" src="/art-home.js"></script>`;
+      const controls=`<div class="art-links"><a class="art-home" href="${w.section==='experiments'?'/experiments/':'/'}" aria-label="${w.section==='experiments'?'Return to Other Experiments':'Return to Ralgo’s exhibition'}"><span>←</span> ${w.section==='experiments'?'EXPERIMENTS':'RALGO'}</a><button type="button" class="art-share" data-share-url="${path}" data-share-title="${esc(title)}">Share</button></div><script type="module" src="/art-home.js"></script>`;
       // Quad embeds another complete HTML document inside a JavaScript string.
       // Its inner closing body must remain untouched.
       const bodyEnd=live.lastIndexOf('</body>');
@@ -110,7 +114,7 @@ export async function buildCollections(root) {
   await writeFile(join(root,'collections/index.html'),`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Collections — Ralgo</title>${headExtras({title:'Collections — Ralgo',description:'Explore Ralgo’s complete collections and selected compositions.',path:'/collections/'})}<link rel="stylesheet" href="/styles.css"></head><body><header class="site-header"><a class="wordmark" href="/">RALGO<span>✳</span></a><nav><a href="/">Exhibition</a><a href="/blog/">Blog</a></nav></header><main class="static-directory"><p class="eyebrow">THE COLLECTION DIRECTORY</p><h1>Choose a world.</h1>${directory}</main></body></html>`);
   // Ordinary anchors are always useful, even before JavaScript loads.
   const {readdir}=await import('node:fs/promises');
-  async function enhance(dir){for(const entry of await readdir(dir,{withFileTypes:true})){const p=join(dir,entry.name);if(entry.isDirectory()&&!['art','assets','artworks'].includes(entry.name))await enhance(p);else if(entry.isFile()&&entry.name.endsWith('.html')){let s=await readFile(p,'utf8');s=s.replace(/href="(#[^"]+)"/g,(full,route)=>/^(#collection\/|#art\/|#live\/|#home$|#living$|#collections$|#about$)/.test(route)?`href="${routeHref(route)}" data-route="${route}"`:full);s=s.replace('<body>',`<body data-site-base="${esc(siteBase)}">`);await writeFile(p,s);}}}
+  async function enhance(dir){for(const entry of await readdir(dir,{withFileTypes:true})){const p=join(dir,entry.name);if(entry.isDirectory()&&!['art','assets','artworks'].includes(entry.name))await enhance(p);else if(entry.isFile()&&entry.name.endsWith('.html')){let s=await readFile(p,'utf8');s=s.replace(/href="(#[^"]+)"/g,(full,route)=>/^(#collection\/|#art\/|#live\/|#home$|#living$|#collections$|#about$|#experiments$)/.test(route)?`href="${routeHref(route)}" data-route="${route}"`:full);s=s.replace('<body>',`<body data-site-base="${esc(siteBase)}">`);await writeFile(p,s);}}}
   await enhance(root);
   await writeFile(join(root,'sitemap.xml'),`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${[...new Set(urls)].map(path=>`<url><loc>${esc(absolute(path))}</loc></url>`).join('')}</urlset>\n`);
   await writeFile(join(root,'robots.txt'),`User-agent: *\nAllow: /\nSitemap: ${absolute('/sitemap.xml')}\n`);
