@@ -19,11 +19,12 @@ for(const filename of await readdir(join(root,'content/posts'))){
     const key=line.slice(0,i).trim(),value=line.slice(i+1).trim();
     metadata[key]=value.startsWith('"')?JSON.parse(value):value;
   }
-  const p={title:metadata.title,date:metadata.date,slug:metadata.slug,excerpt:metadata.excerpt||'',cover:metadata.cover||'',body:match[2].trim()};
+  const p={title:metadata.title,date:metadata.date,slug:metadata.slug,excerpt:metadata.excerpt||'',cover:metadata.cover||'',video:metadata.video||'',body:match[2].trim()};
   if(typeof p.title!=='string'||!p.title.trim()||!p.body)throw Error(filename+': title and article text are required');
   if(!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(p.slug||''))throw Error(filename+': slug must contain lowercase letters, numbers and hyphens');
   if(!/^\d{4}-\d{2}-\d{2}$/.test(p.date||'')||Number.isNaN(Date.parse(p.date))||new Date(p.date).toISOString().slice(0,10)!==p.date)throw Error(filename+': use a valid YYYY-MM-DD date');
   if(p.cover&&!/^\/(assets|artworks)\/[a-zA-Z0-9/_-]+\.(webp|png|jpe?g)$/.test(p.cover))throw Error(filename+': cover must be a local image in /assets/ or /artworks/');
+  if(p.video&&!/^\/assets\/[a-zA-Z0-9/_-]+\.(mp4|webm)$/.test(p.video))throw Error(filename+': video must be a local MP4 or WebM in /assets/');
   if(posts.some(other=>other.slug===p.slug))throw Error('Duplicate blog URL: '+p.slug);
   posts.push(p);
 }
