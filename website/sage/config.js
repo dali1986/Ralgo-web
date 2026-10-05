@@ -2,6 +2,6 @@
 // Empty uses the supplied starting answers and ratings on this screen.
 // These public settings contain no API keys.
 window.SAGE_CONFIG = {
-  api: "",
+  api: "https://sage-api.ralgo.workers.dev",
   turnstile: ""
 };
