@@ -1,0 +1,5 @@
+# For testing on your own computer with `npx wrangler dev`. Never commit the real file.
+MOCK_LLM=1
+ADMIN_TOKEN=a-long-random-test-token-0123456789
+IP_SALT=test
+ALLOWED_ORIGINS=http://localhost:8765

@@ -1,0 +1,36 @@
+name = "sage-api"
+main = "src/index.js"
+compatibility_date = "2025-09-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "sage"
+database_id = "PASTE-THE-ID-FROM-wrangler-d1-create-HERE"
+
+# the nightly job: 03:17 UTC every day
+[triggers]
+crons = ["17 3 * * *"]
+
+[vars]
+# the only sites allowed to use this server
+ALLOWED_ORIGINS = "https://ralgo.art,https://www.ralgo.art"
+MODEL = "claude-sonnet-5-5"
+# new answers wait on your admin page until you approve them; "false" puts them straight live
+REQUIRE_APPROVAL = "true"
+ASKS_PER_HOUR = "8"          # Ask Sage questions, per visitor
+TALK_GAP_SECONDS = "15"      # the questioners: at most one new turn this often, however many people watch
+TALK_MAX_TURNS = "20"        # after this many turns the work asks a new question ("0" = never)
+TALK_RESET_CHANCE = "0.03"   # chance that the question asked back is replaced by one of the work's own
+CALLS_PER_DAY = "600"        # every call to the model, for everyone together; after that Ask Sage rests
+                             # and the questioners replay earlier conversations until tomorrow
+RATINGS_PER_HOUR = "240"     # per visitor
+RETIRE_MIN_RATINGS = "5"     # an answer needs this many ratings before it can be retired
+RETIRE_BELOW = "2.5"         # ...and an average below this
+MAX_NEW_PER_NIGHT = "20"
+SAGE_PER_NIGHT = "5"         # new answers in Sage's current blend each night
+
+# Secrets are set with `npx wrangler secret put NAME`, never written in this file:
+#   ANTHROPIC_API_KEY   your key
+#   ADMIN_TOKEN         a long random password for your admin page
+#   IP_SALT             a random string used to hash visitors' addresses
+#   TURNSTILE_SECRET    optional: the Turnstile widget's secret key

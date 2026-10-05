@@ -104,3 +104,6 @@ dialog{background:var(--bg);color:var(--text);border:0;padding:0}dialog::backdro
 @media(max-width:1100px){.site-header .header-description{display:none}}
 @media(max-width:760px){.experiments-invitation{align-items:flex-start;flex-direction:column;gap:8px}.site-header nav>a{display:none}.site-header nav .nav-experiments{display:block}.experiments-section .live-grid{grid-template-columns:1fr}.chromatic-cover{aspect-ratio:4/3}.experiments-section{padding-top:35px}}
 .chromatic-preview-cell>iframe{opacity:0}
+
+/* Sage uses the work's own colours and type in the experiments room. */
+.sage-cover{position:relative;background:#1b1e26;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:25px;padding:32px;text-align:center;color:#dfe2ea}.sage-cover-credit{font:12px/1.5 monospace;letter-spacing:.12em;color:#8e94a6}.sage-cover-name{font:italic 400 clamp(58px,8vw,96px)/1 var(--serif);color:#79a0f7}.sage-cover-question{font:14px/1.5 monospace;letter-spacing:.12em;color:#a9bfe9}
