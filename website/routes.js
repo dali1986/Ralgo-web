@@ -4,6 +4,7 @@ export function routeHref(route, base = '') {
   if (parts[0] === 'collection') return `${base}/collections/${parts[1]}/`;
   if (parts[0] === 'art') return `${base}/collections/${parts[1]}/${parts[2]}/`;
   if (parts[0] === 'experiments') return `${base}/experiments/`;
+  if (parts[0] === 'compositions') return `${base}/compositions/`;
   if (parts[0] === 'live') return `${base}/works/${parts[1]}/`;
   return base + '/' + (route === '#home' ? '' : route);
 }
@@ -14,6 +15,7 @@ export function pathRoute(path, base = '') {
     return parts[2] ? `#art/${parts[1]}/${parts[2]}` : `#collection/${parts[1]}`;
   }
   if (parts[0] === 'experiments') return '#experiments';
+  if (parts[0] === 'compositions') return '#compositions';
   if (parts[0] === 'works' && parts[1]) return `#live/${parts[1]}`;
   return '#home';
 }

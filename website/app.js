@@ -9,15 +9,15 @@ const siteBase=document.body.dataset.siteBase||'';
 function enhanceLinks(){
  for(const a of document.querySelectorAll('a[href^="#"]')){
   const route=a.getAttribute('href');
-  if(/^#(?:collection\/|art\/|live\/|home$|living$|collections$|about$|experiments$)/.test(route)){a.dataset.route=route;a.href=routeHref(route,siteBase);}
+  if(/^#(?:collection\/|art\/|live\/|home$|living$|collections$|about$|experiments$|compositions$)/.test(route)){a.dataset.route=route;a.href=routeHref(route,siteBase);}
  }
 }
 function activeHeading(id){
- for(const headingID of ['home-title','experiments-title','collection-title']){
+ for(const headingID of ['home-title','experiments-title','compositions-title','collection-title']){
   const old=$(headingID),tag=headingID===id?'H1':'H2';
   if(old&&old.tagName!==tag){const next=document.createElement(tag);next.id=old.id;next.innerHTML=old.innerHTML;old.replaceWith(next);}
  }
- const skip=document.querySelector('.skip');if(skip)skip.href=id==='collection-title'?'#collection-view':id==='experiments-title'?'#experiments-view':'#living';
+ const skip=document.querySelector('.skip');if(skip)skip.href=id==='collection-title'?'#collection-view':id==='experiments-title'?'#experiments-view':id==='compositions-title'?'#compositions-view':'#living';
 }
 function syncPageMetadata(){
  const route=location.hash||pathRoute(location.pathname,siteBase),parts=route.slice(1).split('/');
@@ -30,6 +30,8 @@ function syncPageMetadata(){
    picture=parts[0]==='art'?workShareImage(cid,w.number):collectionShareImage(cid);
    alt=paired&&parts[0]==='art'?`Seasky #${w.number} / ${w.arias.map(ariaName).join(', ')}`:original.title;
   }
+ }else if(parts[0]==='compositions'){
+  description='Ralgo compositions from QQL by Tyler Hobbs and Dandelion Mané, and Quasi Dragon Studies by Harvey Rayner.';
  }else if(parts[0]==='experiments'){
   description='Living worlds, stories made of light, unlikely creatures and a dreaming fire. Experiments by Ralgo.';
  }else if(parts[0]==='live'){
@@ -44,6 +46,11 @@ function syncPageMetadata(){
   if(!tag){tag=document.createElement('meta');tag.setAttribute('property',`og:image:${key}`);document.head.append(tag);}
   tag.setAttribute('content',value);
  }
+ const composing=parts[0]==='compositions'||(['collection','art'].includes(parts[0])&&parts[1]==='quasi')||(parts[0]==='live'&&parts[1]==='qql');
+ for(const a of document.querySelectorAll('.nav-links>a')){
+  const current=composing?a.classList.contains('nav-compositions'):parts[0]==='experiments'?a.classList.contains('nav-experiments'):parts[0]==='collection'||parts[0]==='art'?a.dataset.route==='#collections':parts[0]==='living'||parts[0]==='home'?a.dataset.route==='#living':a.dataset.route==='#'+parts[0];
+  if(current)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');
+ }
  enhanceLinks();
  window.dispatchEvent(new Event('ralgo-pageview'));
 }
@@ -52,9 +59,9 @@ const livingOrder=['water','chromatic-turbulence'];
 const experimentOrder=['chimera','illuminations','creatures','fireplace','chimera-quad'];
 const verseCollections=new Set(['wild','order','continuum','quantum-places-lost-in-time','overgrowth','overgrowth-x8']);
 const verseArchives=new Set(['continuum','quantum-places-lost-in-time','overgrowth','overgrowth-x8']);
-const viewerOrder=[...livingOrder,'qql'];
+const viewerOrder=[...livingOrder];
 let data,collections=new Map(),pairs=[],activeCollection=null,filtered=[],visible=0,layout='wall';
-let sequence=[],viewIndex=0,viewCollection=null,liveWork=null,variant=0,pairMode='both',returnHash='#collections',returnFocus=null,homeScroll=0,artTouch=null,fireVisible=false;
+let sequence=[],viewIndex=0,viewCollection=null,liveWork=null,variant=0,pairMode='both',returnHash='#collections',returnFocus=null,homeScroll=0,artTouch=null;
 const featuredPairs=[68,0,12,57,99,33,1,80];
 const artBlocksSeasky='https://www.artblocks.io/collection/seasky-by-ralgo',artBlocks500='https://www.artblocks.io/discover/ab-500';
 function platformLinks(cid){if(['seasky','aria','seasky-pairs'].includes(cid))return link(artBlocksSeasky,'Seasky on Art Blocks')+link(artBlocks500,'Art Blocks 500');if(cid==='quasi')return link('https://rayner.art/','Harvey Rayner’s website')+link(collections.get('quasi').source,'Quasi Dragon Studies on Verse');return verseCollections.has(cid)?link(collections.get(cid).source,'View on Verse'):'';}
@@ -73,7 +80,7 @@ function renderHome(){
  $('room-grid').innerHTML=roomOrder.map(cid=>{const c=collections.get(cid),m=meta[cid], picks=c.coverNumbers?c.coverNumbers.map(n=>c.items.find(w=>w.number===n)):[c.items[0],c.items[Math.floor(c.items.length*.46)],c.items[Math.floor(c.items.length*.78)]];return `<article class="room-card"><a class="room-cover" href="#collection/${cid}" aria-label="Explore all ${c.count} ${esc(c.title)} works">${picks.map(w=>img(w)).join('')}<span aria-hidden="true">↗</span></a><div class="room-body"><div class="room-heading"><div><span class="meta">${esc(m.kicker)}</span><h3><a href="#collection/${cid}">${esc(m.title)}</a></h3></div><span class="room-count">${c.count} works</span></div><p>${esc(m.intro)}</p><div class="room-links"><a class="underlink" href="#collection/${cid}">Explore all ${c.count} works <span>↗</span></a>${verseCollections.has(cid)?link(c.source,'View on Verse'):''}</div></div></article>`;}).join('');
  const catalogueLinks=['seasky-pairs',...roomOrder].map(cid=>{const count=cid==='seasky-pairs'?'100 pairs · 200 works':collections.get(cid).count+' works';return `<a class="index-row" href="#collection/${cid}"><span>${esc(meta[cid].title)}</span><small>${count}</small></a>`;}).join('');
  const indexWork=id=>{const w=works.find(w=>w.id===id);return `<a class="index-row" href="#live/${w.id}"><span>${esc(w.shortTitle||w.title)}</span><small>${w.live?'Enter':'View'}</small></a>`;};
- $('index-list').innerHTML=`<p class="index-group-label">LATEST WORKS</p>${livingOrder.map(indexWork).join('')}<p class="index-group-label">OTHER EXPERIMENTS</p><a class="index-row" href="#experiments"><span>Other Experiments</span><small>Explore the page ↗</small></a><a class="index-row" href="/sage/"><span>Sage</span><small>Botto · extended by Ralgo</small></a>${experimentOrder.map(indexWork).join('')}<p class="index-group-label">RALGO COLLECTIONS</p>${catalogueLinks}<p class="index-group-label">COMPOSITIONS FROM OTHER ARTISTS’ SERIES</p>${indexWork('qql')}<a class="index-row" href="#collection/quasi"><span>Quasi Dragon Studies</span><small>Harvey Rayner · Ralgo compositions</small></a><p class="index-group-label">WRITING</p><a class="index-row" href="/blog"><span>Art & technology</span><small>Weekly briefings ↗</small></a>`;
+ $('index-list').innerHTML=`<p class="index-group-label">LATEST WORKS</p>${livingOrder.map(indexWork).join('')}<p class="index-group-label">OTHER EXPERIMENTS</p><a class="index-row" href="#experiments"><span>Other Experiments</span><small>Explore the page ↗</small></a><a class="index-row" href="/sage/"><span>Sage</span><small>Botto · extended by Ralgo</small></a>${experimentOrder.map(indexWork).join('')}<p class="index-group-label">RALGO COLLECTIONS</p>${catalogueLinks}<p class="index-group-label">COMPOSITIONS FROM OTHER ARTISTS’ SERIES</p><a class="index-row" href="#compositions"><span>Compositions</span><small>Explore the page ↗</small></a>${indexWork('qql')}<a class="index-row" href="#collection/quasi"><span>Quasi Dragon Studies</span><small>Harvey Rayner · Ralgo compositions</small></a><p class="index-group-label">WRITING</p><a class="index-row" href="/blog"><span>Art & technology</span><small>Weekly briefings ↗</small></a>`;
  $('collection-select').innerHTML='<optgroup label="Ralgo collections">'+['seasky-pairs',...roomOrder,'seasky','aria'].map(cid=>`<option value="${cid}">${esc(meta[cid].title)}</option>`).join('')+'</optgroup><optgroup label="Compositions from other artists’ series"><option value="quasi">Harvey Rayner · Quasi Dragon Studies</option></optgroup>';
  renderFeature();
 }
@@ -82,7 +89,7 @@ function renderCollection(cid){
  activeHeading('collection-title');
  const changed=activeCollection!==cid;
  if(!$('home-view').hidden)homeScroll=window.scrollY;
- $('home-view').hidden=true;$('experiments-view').hidden=true;$('collection-view').hidden=false;window.dispatchEvent(new Event('exhibition-view-change'));removeFire();
+ $('home-view').hidden=true;$('experiments-view').hidden=true;$('compositions-view').hidden=true;$('collection-view').hidden=false;window.dispatchEvent(new Event('exhibition-view-change'));
  document.title=meta[cid].title+' — Ralgo';
  if(!changed)return;
  activeCollection=cid;setLayout('wall');$('art-search').value='';$('collection-select').value=cid;
@@ -107,7 +114,7 @@ function setLayout(mode){layout=mode;$('layout-gallery').setAttribute('aria-pres
 function resetFocus(){viewer.classList.remove('focus');$('viewer-focus').setAttribute('aria-pressed','false');$('exit-focus').hidden=true;}
 function setFocus(on){viewer.classList.toggle('focus',on);$('viewer-focus').setAttribute('aria-pressed',String(on));$('exit-focus').hidden=!on;if(on)setInfo(false);}
 function setInfo(on){$('viewer-info').hidden=!on;$('viewer-info-toggle').setAttribute('aria-pressed',String(on));}
-function ensureViewer(){if(!viewer.open){returnFocus=document.activeElement;resetFocus();setInfo(false);viewer.showModal();lockScroll();removeFire();}}
+function ensureViewer(){if(!viewer.open){returnFocus=document.activeElement;resetFocus();setInfo(false);viewer.showModal();lockScroll();}}
 function closeViewer(){if(viewer.open){if(document.fullscreenElement)document.exitFullscreen?.().catch(()=>{});viewer.close();}$('viewer-stage').replaceChildren();liveWork=null;setInfo(false);resetFocus();lockScroll();}
 function viewImage(w,label){
  const f=document.createElement('figure');f.className='view-figure';
@@ -154,17 +161,17 @@ function liveStill(w,index=0){$('viewer-stage').className='viewer-stage';const i
 function startLive(w){$('viewer-stage').className='viewer-stage live';const frame=document.createElement('iframe');frame.src=w.live;frame.title=w.title;frame.allow='autoplay; fullscreen';frame.allowFullscreen=true;$('viewer-stage').replaceChildren(frame);setInfo(false);}
 function openLive(id){
  const w=works.find(x=>x.id===id);if(!w)return;
- const experiment=w.section==='experiments';
- activeHeading(experiment?'experiments-title':'home-title');
- $('home-view').hidden=experiment;$('experiments-view').hidden=!experiment;$('collection-view').hidden=true;
- $('viewer-back').querySelector('span').textContent=experiment?'Other Experiments':'Exhibition';liveWork=w;viewCollection=null;returnHash=experiment?'#experiments':'#living';ensureViewer();
+ const experiment=w.section==='experiments',composition=w.section==='compositions';
+ activeHeading(experiment?'experiments-title':composition?'compositions-title':'home-title');
+ $('home-view').hidden=experiment||composition;$('experiments-view').hidden=!experiment;$('compositions-view').hidden=!composition;$('collection-view').hidden=true;
+ $('viewer-back').querySelector('span').textContent=experiment?'Other Experiments':composition?'Compositions':'Exhibition';liveWork=w;viewCollection=null;returnHash=experiment?'#experiments':composition?'#compositions':'#living';ensureViewer();
  $('viewer-context').textContent=w.category;$('viewer-title').textContent=w.shortTitle||w.title;$('viewer-progress').textContent='';$('pair-modes').hidden=true;$('aria-variant-label').hidden=true;$('viewer-stage').className='viewer-stage';
  $('viewer-footer-caption').innerHTML=w.live?link(w.live,'Open separately','separate-link'):'Parametric artist & minter: Ralgo';
  $('viewer-info').innerHTML=`<h3>${esc(w.title)}</h3><p>${esc(w.description)}</p>${w.live?'<button class="underlink" data-restart-live>Restart live work <span>↗</span></button>':''}${w.source?link(w.source,w.sourceLabel||'View original work'):''}${(w.extraLinks||[]).map(l=>link(l.url,l.label)).join('')}${w.creditSource?link(w.creditSource,'Artist credit'):''}${w.id==='creatures'?`<div class="still-picker">${w.images.map((src,i)=>`<button data-live-still="${i}" aria-label="View selected creature ${i+1}" aria-pressed="false"><img src="${esc(src)}" alt=""></button>`).join('')}</div>`:''}<small>${esc(w.credit)}</small>`;
  if(w.live)startLive(w);else liveStill(w);
  $('prev-art').disabled=false;$('next-art').disabled=false;document.title=w.title+' — Ralgo';
 }
-function moveArt(dir){if(liveWork){const ids=liveWork.section==='experiments'?experimentOrder:viewerOrder,i=ids.indexOf(liveWork.id);goto('#live/'+ids[(i+dir+ids.length)%ids.length],{replace:true});return;}if(!sequence.length)return;const i=(viewIndex+dir+sequence.length)%sequence.length;goto(`#art/${viewCollection}/${sequence[i].number}`,{replace:true});}
+function moveArt(dir){if(liveWork){const ids=liveWork.section==='experiments'?experimentOrder:liveWork.section==='compositions'?['qql']:viewerOrder,i=ids.indexOf(liveWork.id);goto('#live/'+ids[(i+dir+ids.length)%ids.length],{replace:true});return;}if(!sequence.length)return;const i=(viewIndex+dir+sequence.length)%sequence.length;goto(`#art/${viewCollection}/${sequence[i].number}`,{replace:true});}
 function route(){
  if(!data)return;if(indexDialog.open)indexDialog.close();
  $('static-work')?.remove();
@@ -177,24 +184,24 @@ function route(){
  if(parts[0]==='collection'){renderCollection(parts[1]);syncPageMetadata();return;}
  if(parts[0]==='experiments'){
   const wasHidden=$('experiments-view').hidden;
-  activeHeading('experiments-title');$('home-view').hidden=true;$('collection-view').hidden=true;$('experiments-view').hidden=false;activeCollection=null;
+  activeHeading('experiments-title');$('home-view').hidden=true;$('collection-view').hidden=true;$('compositions-view').hidden=true;$('experiments-view').hidden=false;activeCollection=null;
   document.title='Other Experiments — Ralgo';if(wasHidden)window.scrollTo({top:0,behavior:'instant'});
-  window.dispatchEvent(new Event('exhibition-view-change'));maybeFire();syncPageMetadata();return;
+  window.dispatchEvent(new Event('exhibition-view-change'));syncPageMetadata();return;
  }
- activeHeading('home-title');$('experiments-view').hidden=true;
+ if(parts[0]==='compositions'){
+  const wasHidden=$('compositions-view').hidden;
+  activeHeading('compositions-title');$('home-view').hidden=true;$('collection-view').hidden=true;$('experiments-view').hidden=true;$('compositions-view').hidden=false;activeCollection=null;
+  document.title='Compositions — Ralgo';if(wasHidden)window.scrollTo({top:0,behavior:'instant'});
+  window.dispatchEvent(new Event('exhibition-view-change'));syncPageMetadata();return;
+ }
+ activeHeading('home-title');$('experiments-view').hidden=true;$('compositions-view').hidden=true;
  const wasCollection=!$('collection-view').hidden;$('collection-view').hidden=true;$('home-view').hidden=false;activeCollection=null;document.title='RALGO — Living works & collections';
  if(parts[0]==='home')window.scrollTo({top:0,behavior:'instant'});else if(['collections','living','about'].includes(parts[0]))requestAnimationFrame(()=>$(parts[0]).scrollIntoView({behavior:'instant'}));else if(wasCollection)window.scrollTo({top:homeScroll,behavior:'instant'});
- window.dispatchEvent(new Event('exhibition-view-change'));maybeFire();syncPageMetadata();
+ window.dispatchEvent(new Event('exhibition-view-change'));syncPageMetadata();
 }
-function removeFire(){const frame=$('fire-preview').querySelector('iframe');if(frame)frame.remove();const cover=$('fire-preview').querySelector('.preview-cover');if(cover)cover.remove();$('fire-preview').querySelector('.preview-launch').hidden=false;}
-function maybeFire(){
- const box=$('fire-preview'),r=box.getBoundingClientRect();fireVisible=r.top<innerHeight&&r.bottom>0;
- if(!$('experiments-view').hidden&&!viewer.open&&fireVisible&&!matchMedia('(prefers-reduced-motion: reduce)').matches){if(box.querySelector('iframe'))return;box.querySelector('.preview-launch').hidden=true;const frame=document.createElement('iframe');frame.src='/art/fireplace/index.html?preview=1';frame.title='Live preview of The Dreaming Fire';frame.tabIndex=-1;frame.setAttribute('aria-hidden','true');frame.setAttribute('scrolling','no');const cover=document.createElement('button');cover.className='preview-cover';cover.dataset.live='fireplace';cover.setAttribute('aria-label','Enter the live fireplace');cover.innerHTML='<span>Enter the fire</span><span aria-hidden="true">↗</span>';box.append(frame,cover);}else removeFire();
-}
-new IntersectionObserver(()=>maybeFire(),{threshold:[0,.1,.5]}).observe($('fire-preview'));
 $('index-open').addEventListener('click',()=>{returnFocus=document.activeElement;indexDialog.showModal();lockScroll();});$('index-close').addEventListener('click',()=>indexDialog.close());indexDialog.addEventListener('close',lockScroll);
 $('art-search').addEventListener('input',filterGallery);$('clear-search').addEventListener('click',()=>{$('art-search').value='';filterGallery();$('art-search').focus();});$('collection-select').addEventListener('change',e=>goto('#collection/'+e.target.value));$('load-more').addEventListener('click',()=>appendGallery());$('show-all').addEventListener('click',()=>appendGallery(true));$('layout-gallery').addEventListener('click',()=>setLayout('gallery'));$('layout-wall').addEventListener('click',()=>setLayout('wall'));
-$('viewer-back').addEventListener('click',()=>goto(returnHash));$('viewer-close').addEventListener('click',()=>goto(returnHash));viewer.addEventListener('cancel',e=>{e.preventDefault();goto(returnHash);});viewer.addEventListener('close',()=>{$('viewer-stage').replaceChildren();lockScroll();if(returnFocus?.isConnected)returnFocus.focus({preventScroll:true});maybeFire();});
+$('viewer-back').addEventListener('click',()=>goto(returnHash));$('viewer-close').addEventListener('click',()=>goto(returnHash));viewer.addEventListener('cancel',e=>{e.preventDefault();goto(returnHash);});viewer.addEventListener('close',()=>{$('viewer-stage').replaceChildren();lockScroll();if(returnFocus?.isConnected)returnFocus.focus({preventScroll:true});});
 $('viewer-fullscreen').hidden=!document.fullscreenEnabled;
 $('viewer-fullscreen').addEventListener('click',async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await viewer.requestFullscreen();}catch{$('status').textContent='Full screen is unavailable. Focus mode expands the artwork within this window.';}});
 document.addEventListener('fullscreenchange',()=>{$('viewer-fullscreen').setAttribute('aria-label',document.fullscreenElement?'Exit full screen':'Enter full screen');});

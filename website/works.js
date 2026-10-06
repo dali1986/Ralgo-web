@@ -207,7 +207,7 @@ export const works = [
     "id": "qql",
     "title": "QQL #325",
     "category": "Parametric artist · Ralgo",
-    "section": "dialogue",
+    "section": "compositions",
     "images": [
       "/assets/display/qql-325-1400.webp"
     ],
@@ -227,7 +227,7 @@ export const works = [
     "id": "quasi",
     "title": "Quasi Dragon Studies",
     "category": "Harvey Rayner · Primary artist / Ralgo · Compositions",
-    "section": "dialogue",
+    "section": "compositions",
     "images": [
       "/artworks/quasi/339.webp"
     ],
