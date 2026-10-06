@@ -1,5 +1,6 @@
 import {shareArtwork} from './share.js';
 import {works} from './works.js';
+import {mountLiveWork} from './live-loader.js';
 import {meta} from './collection-meta.js';
 import {routeHref, pathRoute} from './routes.js';
 import {defaultShareImage,collectionShareImage,workShareImage,liveShareImage} from './share-card-paths.js';
@@ -115,7 +116,9 @@ function resetFocus(){viewer.classList.remove('focus');$('viewer-focus').setAttr
 function setFocus(on){viewer.classList.toggle('focus',on);$('viewer-focus').setAttribute('aria-pressed',String(on));$('exit-focus').hidden=!on;if(on)setInfo(false);}
 function setInfo(on){$('viewer-info').hidden=!on;$('viewer-info-toggle').setAttribute('aria-pressed',String(on));}
 function ensureViewer(){if(!viewer.open){returnFocus=document.activeElement;resetFocus();setInfo(false);viewer.showModal();lockScroll();}}
-function closeViewer(){if(viewer.open){if(document.fullscreenElement)document.exitFullscreen?.().catch(()=>{});viewer.close();}$('viewer-stage').replaceChildren();liveWork=null;setInfo(false);resetFocus();lockScroll();}
+let stopLiveLoading=()=>{};
+function clearViewerStage(){stopLiveLoading();stopLiveLoading=()=>{};$('viewer-stage').replaceChildren();}
+function closeViewer(){if(viewer.open){if(document.fullscreenElement)document.exitFullscreen?.().catch(()=>{});viewer.close();}clearViewerStage();liveWork=null;setInfo(false);resetFocus();lockScroll();}
 function viewImage(w,label){
  const f=document.createElement('figure');f.className='view-figure';
  if(w.previewStatus==='unavailable'){f.innerHTML='<div class="preview-unavailable">A preview isn’t available for this work yet.</div>'+link(w.source,'View collection on Verse');return f;}
@@ -134,7 +137,7 @@ function viewImage(w,label){
 }
 function renderArt(){
  const w=sequence[viewIndex];if(!w)return;$('viewer-back').querySelector('span').textContent='Collection';
- $('viewer-stage').replaceChildren();$('viewer-stage').className='viewer-stage';$('pair-modes').hidden=viewCollection!=='seasky-pairs';$('aria-variant-label').hidden=true;
+ clearViewerStage();$('viewer-stage').className='viewer-stage';$('pair-modes').hidden=viewCollection!=='seasky-pairs';$('aria-variant-label').hidden=true;
  $('viewer-context').textContent=viewCollection==='quasi'?'Harvey Rayner · Primary artist / Ralgo · Composition':viewCollection==='seasky'?'Seasky · Art Blocks 500':meta[viewCollection].title;$('viewer-title').textContent=viewCollection==='seasky-pairs'?`Seasky #${w.number} / Aria`:w.title;$('viewer-progress').textContent=`${viewIndex+1} / ${sequence.length}`;
  $('viewer-footer-caption').innerHTML=platformLinks(viewCollection);
  if(viewCollection==='seasky-pairs'){
@@ -157,8 +160,8 @@ function openArt(cid,number){
  const options=filtered.some(w=>w.number===number)?filtered:getItems(cid);sequence=options;viewIndex=sequence.findIndex(w=>w.number===number);if(viewIndex<0){goto('#collection/'+cid,{replace:true});return;}
  returnHash='#collection/'+cid;variant=0;ensureViewer();renderArt();
 }
-function liveStill(w,index=0){$('viewer-stage').className='viewer-stage';const images=w.images||[];if(!images.length)return;const image=images[index];$('viewer-stage').replaceChildren(viewImage({title:w.title,image,local:image,original:image},'RALGO'));document.querySelectorAll('[data-live-still]').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.liveStill)===index)));}
-function startLive(w){$('viewer-stage').className='viewer-stage live';const frame=document.createElement('iframe');frame.src=w.live;frame.title=w.title;frame.allow='autoplay; fullscreen';frame.allowFullscreen=true;$('viewer-stage').replaceChildren(frame);setInfo(false);}
+function liveStill(w,index=0){clearViewerStage();$('viewer-stage').className='viewer-stage';const images=w.images||[];if(!images.length)return;const image=images[index];$('viewer-stage').replaceChildren(viewImage({title:w.title,image,local:image,original:image},'RALGO'));document.querySelectorAll('[data-live-still]').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.liveStill)===index)));}
+function startLive(w){clearViewerStage();$('viewer-stage').className='viewer-stage live';stopLiveLoading=mountLiveWork($('viewer-stage'),w,()=>startLive(w));setInfo(false);}
 function openLive(id){
  const w=works.find(x=>x.id===id);if(!w)return;
  const experiment=w.section==='experiments',composition=w.section==='compositions';
@@ -201,7 +204,7 @@ function route(){
 }
 $('index-open').addEventListener('click',()=>{returnFocus=document.activeElement;indexDialog.showModal();lockScroll();});$('index-close').addEventListener('click',()=>indexDialog.close());indexDialog.addEventListener('close',lockScroll);
 $('art-search').addEventListener('input',filterGallery);$('clear-search').addEventListener('click',()=>{$('art-search').value='';filterGallery();$('art-search').focus();});$('collection-select').addEventListener('change',e=>goto('#collection/'+e.target.value));$('load-more').addEventListener('click',()=>appendGallery());$('show-all').addEventListener('click',()=>appendGallery(true));$('layout-gallery').addEventListener('click',()=>setLayout('gallery'));$('layout-wall').addEventListener('click',()=>setLayout('wall'));
-$('viewer-back').addEventListener('click',()=>goto(returnHash));$('viewer-close').addEventListener('click',()=>goto(returnHash));viewer.addEventListener('cancel',e=>{e.preventDefault();goto(returnHash);});viewer.addEventListener('close',()=>{$('viewer-stage').replaceChildren();lockScroll();if(returnFocus?.isConnected)returnFocus.focus({preventScroll:true});});
+$('viewer-back').addEventListener('click',()=>goto(returnHash));$('viewer-close').addEventListener('click',()=>goto(returnHash));viewer.addEventListener('cancel',e=>{e.preventDefault();goto(returnHash);});viewer.addEventListener('close',()=>{if(viewer.open)return;clearViewerStage();lockScroll();if(returnFocus?.isConnected)returnFocus.focus({preventScroll:true});});
 $('viewer-fullscreen').hidden=!document.fullscreenEnabled;
 $('viewer-fullscreen').addEventListener('click',async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await viewer.requestFullscreen();}catch{$('status').textContent='Full screen is unavailable. Focus mode expands the artwork within this window.';}});
 document.addEventListener('fullscreenchange',()=>{$('viewer-fullscreen').setAttribute('aria-label',document.fullscreenElement?'Exit full screen':'Enter full screen');});

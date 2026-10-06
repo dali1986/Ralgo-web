@@ -101,6 +101,13 @@ export async function buildCollections(root) {
     await save(path,html);
     if(w.live){
       const file=join(root,w.live);let live=await readFile(file,'utf8');
+      const startup='<link rel="stylesheet" href="/art-ready.css"><script src="/art-ready.js"></script>';
+      live=live.replace(/<head(?:\s[^>]*)?>/i,head=>head+startup);
+      if(w.id==='chimera-quad'){
+        const needle="f.srcdoc = ART.replace('<head>', '<head><script>window.__CFG='";
+        if(!live.includes(needle))throw new Error('Chimera Quad startup hook was not found.');
+        live=live.replace(needle,"f.srcdoc = ART.replace('<head>', '<head><link rel=\"stylesheet\" href=\"/art-ready.css\"><script src=\"/art-ready.js\"><\\/script><script>window.__CFG='");
+      }
       live=live.replace('</head>',headExtras({title,description:w.description,path:w.live,image:sharePicture,imageAlt:w.images?.length?title:'Ralgo exhibition',schema})+'<link rel="stylesheet" href="/art-home.css"><link rel="stylesheet" href="/share.css"></head>');
       const controls=`<div class="art-links"><a class="art-home" href="${w.section==='experiments'?'/experiments/':'/'}" aria-label="${w.section==='experiments'?'Return to Other Experiments':'Return to Ralgo’s exhibition'}"><span>←</span> ${w.section==='experiments'?'EXPERIMENTS':'RALGO'}</a><button type="button" class="art-share" data-share-url="${path}" data-share-title="${esc(title)}">Share</button></div><script type="module" src="/art-home.js"></script>`;
       // Quad embeds another complete HTML document inside a JavaScript string.
@@ -111,6 +118,10 @@ export async function buildCollections(root) {
       await writeFile(file,live);
     }
   }
+  // Sage is a separate p5 application, with the same first-paint protection.
+  const sageFile=join(root,'sage/index.html');
+  const sage=await readFile(sageFile,'utf8');
+  await writeFile(sageFile,sage.replace(/<head(?:\s[^>]*)?>/i,head=>head+'<link rel="stylesheet" href="/art-ready.css"><script src="/art-ready.js"></script>'));
   renderShareCards(root,[...shareCards.values()]);
   const directory=[...collections.values()].filter(c=>c.id!=='aria'&&c.id!=='seasky').map(c=>`<a class="index-row" href="${collectionPath(c.id)}"><span>${esc(meta[c.id]?.title||c.title)}</span><small>${c.count} ${c.id==='seasky-pairs'?'pairs':'works'}</small></a>`).join('');
   await writeFile(join(root,'collections/index.html'),`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Collections — Ralgo</title>${headExtras({title:'Collections — Ralgo',description:'Explore Ralgo’s complete collections and selected compositions.',path:'/collections/'})}<link rel="stylesheet" href="/styles.css"></head><body><header class="site-header"><a class="wordmark" href="/"><img src="/assets/brand/ralgo-tines-reversed.svg" alt="Ralgo" width="126" height="65"></a><nav><a href="/">Exhibition</a><a href="/blog/">Blog</a></nav></header><main class="static-directory"><p class="eyebrow">THE COLLECTION DIRECTORY</p><h1>Choose a world.</h1>${directory}</main></body></html>`);

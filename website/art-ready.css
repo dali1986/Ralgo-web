@@ -1,0 +1,5 @@
+/* Keep setup and canvas resizing out of the first visible frame. */
+html{background:#101110}
+html[data-ralgo-state=loading] body{opacity:0}
+html[data-ralgo-state=ready] body{opacity:1;transition:opacity .18s ease}
+@media(prefers-reduced-motion:reduce){html[data-ralgo-state=ready] body{transition:none}}

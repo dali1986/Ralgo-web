@@ -15,6 +15,7 @@ export const works = [
   },
   {
     "id": "chimera",
+    "preview": "/assets/experiments/chimera.webp",
     "title": "Chimera",
     "category": "A living world",
     "section": "experiments",
@@ -28,6 +29,7 @@ export const works = [
   },
   {
     "id": "chimera-quad",
+    "preview": "/assets/experiments/chimera.webp",
     "title": "Chimera Quad",
     "category": "Four living worlds",
     "section": "experiments",
@@ -56,6 +58,7 @@ export const works = [
   },
   {
     "id": "creatures",
+    "preview": "/assets/experiments/creatures.webp",
     "title": "Creatures from the Overgrowth",
     "category": "Generative characters",
     "section": "experiments",
@@ -74,6 +77,7 @@ export const works = [
   },
   {
     "id": "illuminations",
+    "preview": "/assets/experiments/illuminations.webp",
     "title": "Illuminations / Light Stories",
     "category": "Stories made of light",
     "section": "experiments",
@@ -88,6 +92,7 @@ export const works = [
   },
   {
     "id": "fireplace",
+    "preview": "/assets/experiments/fireplace.webp",
     "title": "Generative Fireplace",
     "shortTitle": "The Dreaming Fire",
     "category": "Ember · The Dreaming Fire",
