@@ -29,6 +29,8 @@ export async function fingerprintAssets(root){
     replacements.set('/'+path,'/'+target);
   }
   for(const file of await readdir(join(root,'assets/display')))await version('assets/display/'+file);
+  for(const file of await readdir(join(root,'assets/brand')))await version('assets/brand/'+file);
+  for(const file of ['favicon.svg','favicon.ico','apple-touch-icon.png'])await version(file);
   for(const file of (await readdir(root)).filter(n=>n.endsWith('.css')))await version(file,true);
   await version('data/catalogue.json',true);
   // Dependencies first, so an imported module's filename is included in its parent's hash.
