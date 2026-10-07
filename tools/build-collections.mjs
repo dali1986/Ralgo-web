@@ -20,7 +20,7 @@ export async function buildCollections(root) {
   const pairs=collections.get('seasky').items.map(w=>({number:w.number,title:`Seasky #${w.number} & Aria`,original:w,arias:arias.filter(a=>a.pair===w.number)}));
   collections.set('seasky-pairs',{id:'seasky-pairs',title:'Seasky & Aria',count:100,items:pairs,source:collections.get('seasky').source});
   const home=await readFile(join(root,'index.html'),'utf8');
-  const urls=['/','/collections/','/blog/',...blogPosts.map(p=>'/blog/'+p.slug+'/')];
+  const urls=['/','/collections/','/blog/','/tapestry/',...blogPosts.map(p=>'/blog/'+p.slug+'/')];
   const collectionPath=id=>`/collections/${id}/`;
   const workPath=(id,n)=>`${collectionPath(id)}${n}/`;
   const image=w=>w.previewStatus==='unavailable'?null:(w.local||w.thumbnail||w.image);
@@ -51,7 +51,7 @@ export async function buildCollections(root) {
     return html;
   }
   async function save(path,html){const file=join(root,path,'index.html');await mkdir(dirname(file),{recursive:true});await writeFile(file,html);urls.push(path);}
-  const experimentsHTML=shell({title:'Other Experiments',description:'Living worlds, stories made of light, unlikely creatures and a dreaming fire. Experiments by Ralgo.',path:'/experiments/'}).replace('<main id="experiments-view" hidden>','<main id="experiments-view"><span id="page-content"></span>').replace('<h2 id="experiments-title">Other <em>Experiments</em></h2>','<h1 id="experiments-title">Other <em>Experiments</em></h1>');
+  const experimentsHTML=shell({title:'Other Experiments',description:'An embroidered history of AI, living worlds, stories made of light, unlikely creatures and a dreaming fire. Experiments by Ralgo.',path:'/experiments/'}).replace('<main id="experiments-view" hidden>','<main id="experiments-view"><span id="page-content"></span>').replace('<h2 id="experiments-title">Other <em>Experiments</em></h2>','<h1 id="experiments-title">Other <em>Experiments</em></h1>');
   await save('/experiments/',experimentsHTML);
   const compositionsHTML=shell({title:'Compositions',description:'Sage, extending Botto’s Synaptic Whispers of Digital Awakening; Ralgo compositions from QQL by Tyler Hobbs and Dandelion Mané, and Quasi Dragon Studies by Harvey Rayner.',path:'/compositions/'}).replace('<main id="compositions-view" hidden>','<main id="compositions-view"><span id="page-content"></span>').replace('<h2 id="compositions-title">A composer’s role.<br><em>Another artist’s world.</em></h2>','<h1 id="compositions-title">A composer’s role.<br><em>Another artist’s world.</em></h1>');
   await save('/compositions/',compositionsHTML);
