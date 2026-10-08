@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>The Machine Tapestry</title>
-<meta name="description" content="The past five years of artificial intelligence, embroidered in the manner of the Bayeux Tapestry: an animated chronicle stitched in code by Claude Opus 5.5.">
+<meta name="description" content="The past ten years of artificial intelligence, embroidered in the manner of the Bayeux Tapestry: an animated chronicle stitched in code by Claude Opus 5.5.">
 <meta name="theme-color" content="#1d1813">
 <link rel="canonical" href="https://ralgo.art/tapestry/">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2064%2064%27%3E%3Crect%20width%3D%2764%27%20height%3D%2764%27%20rx%3D%2714%27%20fill%3D%27%23ddcda9%27/%3E%3Cpath%20d%3D%27M44%2020%20C60%2034%2026%2038%2018%2054%27%20fill%3D%27none%27%20stroke%3D%27%23c56543%27%20stroke-width%3D%274%27%20stroke-linecap%3D%27round%27/%3E%3Cpath%20d%3D%27M14%2050%20L48%2016%27%20stroke%3D%27%232b2b3a%27%20stroke-width%3D%276%27%20stroke-linecap%3D%27round%27/%3E%3Ccircle%20cx%3D%2744%27%20cy%3D%2720%27%20r%3D%272.4%27%20fill%3D%27%23ddcda9%27/%3E%3C/svg%3E">
 <meta property="og:type" content="website">
 <meta property="og:title" content="The Machine Tapestry">
-<meta property="og:description" content="The past five years of artificial intelligence, embroidered in the manner of the Bayeux Tapestry: an animated chronicle stitched in code by Claude Opus 5.5.">
+<meta property="og:description" content="The past ten years of artificial intelligence, embroidered in the manner of the Bayeux Tapestry: an animated chronicle stitched in code by Claude Opus 5.5.">
 <meta property="og:url" content="https://ralgo.art/tapestry/">
 <meta property="og:image" content="https://ralgo.art/tapestry/og.jpg">
 <meta property="og:image:width" content="1200">
@@ -18,7 +18,7 @@
 <meta property="og:image:alt" content="An embroidered scene in the Bayeux style: a crowd raises its arms at a comet labelled ChatGPT.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="The Machine Tapestry">
-<meta name="twitter:description" content="The past five years of artificial intelligence, embroidered in the manner of the Bayeux Tapestry: an animated chronicle stitched in code by Claude Opus 5.5.">
+<meta name="twitter:description" content="The past ten years of artificial intelligence, embroidered in the manner of the Bayeux Tapestry: an animated chronicle stitched in code by Claude Opus 5.5.">
 <meta name="twitter:image" content="https://ralgo.art/tapestry/og.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -139,9 +139,9 @@ button:focus-visible, .scroller:focus-visible { outline: 2px solid var(--ochre);
 
 <header class="masthead gutter">
   <div>
-    <p class="eyebrow">The past five years, embroidered in <span data-count>44</span> scenes</p>
+    <p class="eyebrow">The past ten years, embroidered in <span data-count>44</span> scenes</p>
     <h1>The Machine Tapestry</h1>
-    <p class="dek">The past five years of artificial intelligence, stitched in code in the manner of the Bayeux Tapestry.</p>
+    <p class="dek">The past ten years of artificial intelligence, from a broken oath to the race for superintelligence, stitched in code in the manner of the Bayeux Tapestry.</p>
   </div>
   <div class="controls" role="group" aria-label="Travel along the tapestry">
     <button id="motion" type="button" aria-pressed="true">Stop motion</button>
@@ -167,9 +167,9 @@ button:focus-visible, .scroller:focus-visible { outline: 2px solid var(--ochre);
 </div>
 
 <section class="label gutter" aria-live="polite">
-  <div class="label-meta"><span id="sceneNo">Scene 1 of 44</span><span id="sceneYear">Before 2021</span><button id="copylink" type="button" class="linkbtn">Copy link to this scene</button><span class="toast" id="toast" role="status" hidden></span></div>
+  <div class="label-meta"><span id="sceneNo">Scene 1 of 44</span><span id="sceneYear">2015</span><button id="copylink" type="button" class="linkbtn">Copy link to this scene</button><span class="toast" id="toast" role="status" hidden></span></div>
   <div class="label-text">
-    <p class="latin" id="latin">+ HERE BEGINS THE STORY OF THE MACHINES THAT SPEAK</p>
+    <p class="latin" id="latin">WHERE THEY SWORE TO MAKE THE MACHINE FOR ALL</p>
     <p class="note" id="note"></p>
     <p class="hint">Drag, scroll or use ← → to travel along the cloth. Press Unroll to let it pass by. Hover or tap a figure to see who it is.</p>
   </div>
@@ -3225,6 +3225,61 @@ function backRank(g, xs, o = {}) {
   SCENES.forEach((sc, i) => { sc.opener = /^(AND|BUT) /.test(sc.lat) ? 'none' : cycle[i % cycle.length]; });
 })();
 
+/* ===== the prologue: the cloth opens on the oath, then eight scribes write the grammar of the machines ===== */
+(function prologue() {
+  const at = pre => { const i = SCENES.findIndex(x => x.lat.startsWith(pre)); if (i < 0) throw new Error('missing ' + pre); return i; };
+  SCENES.forEach((s, i) => { s.seedFix = 1009 + i * 97; });            // every scene keeps the threads it was checked with
+  SCENES.splice(at('+ HERE BEGINS'), 1);
+  const oath = SCENES[at('WHERE THEY SWORE')];
+  oath.first = true; oath.opener = 'tree'; oath.mark = '2015';
+  oath.cap[0][0] = '+ ' + oath.cap[0][0];
+
+  const XS = [190, 274, 358, 442, 526, 610, 694, 778], YB = G - 152;
+  const NAMES = ['Ashish Vaswani', 'Noam Shazeer', 'Niki Parmar', 'Jakob Uszkoreit', 'Llion Jones', 'Aidan Gomez', 'Łukasz Kaiser', 'Illia Polosukhin'];
+  const TRANSFORMER = {
+    w: 1260, year: 'June 2017', era: 0, opener: 'hill', seedFix: 1009, mood: 'calm',
+    cap: [['HERE EIGHT SCRIBES WRITE THAT ATTENTION IS ALL YOU NEED', 70, 1120]],
+    note: 'In June 2017 eight researchers at Google published “Attention Is All You Need”, introducing the Transformer. It is the T in GPT and the design inside nearly every machine on this cloth. All eight later left Google, most to found companies of their own. The threads above them show how a Transformer reads: every word looks at every other, and the attention passes from scribe to scribe.',
+    who: NAMES.map((n, i) => [n + ', co-author of “Attention Is All You Need” (Google, 2017)', [XS[i] - 32, G - 150, XS[i] + 32, G - 60]])
+      .concat([['Attention: every word weighs every other word', [XS[0], YB - 130, XS[7], YB - 8]],
+        ['The paper, posted 12 June 2017', [150, G - 62, 840, G - 30]],
+        ['The Transformer, the T in GPT', [960, G - 186, 1070, G]]]),
+    draw(g) {
+      tree(g, 45);
+      /* attention: an arc between every pair of words, the arcs of one scribe drawn bold in turn */
+      const k = Math.floor(ANIM_T * 8 + 1e-6) % 8, arcs = [];
+      for (let i = 0; i < 8; i++) for (let j = i + 1; j < 8; j++) arcs.push([i, j]);
+      arcs.sort((a, b) => (a[0] === k || a[1] === k) - (b[0] === k || b[1] === k));
+      arcs.forEach(([i, j]) => {
+        const a = XS[i], b = XS[j], h = 12 + 0.19 * (b - a), hot = i === k || j === k;
+        g.stem(smooth([[a, YB], [a + (b - a) * 0.25, YB - h * 0.8], [(a + b) / 2, YB - h], [b - (b - a) * 0.25, YB - h * 0.8], [b, YB]], false, 6),
+          hot ? PAL.terra : (i + j) % 2 ? PAL.sage : PAL.ochre, hot ? 2.2 : 1.1);
+      });
+      XS.forEach((x, i) => g.fill(circ(x, YB, i === k ? 6 : 4.5, 12), i === k ? PAL.terra : PAL.indigo, { ow: 1.1, ang: 0 }));
+      /* the eight at their long table, as the feasters sit at Bayeux */
+      XS.forEach((x, i) => {
+        const f = i < 4 ? 1 : -1;
+        const p = person(g, x, P(i + 2, { f, pose: 'sit', s: 0.9, armF: [72, 22], armB: [50, 30], hat: i === 2 ? 'hood' : i === 5 ? 'cap' : undefined, hoodC: PAL.terra, capC: PAL.teal, gown: i === 2, act: i === 1 || i === 6 ? 7 : 0, mouth: i === 3 || i === 4 || i === k }));
+        quill(g, p.hf, f > 0 ? -0.4 : Math.PI + 0.4, 24);
+      });
+      table(g, 140, 850, G - 64);
+      g.fill(rect(146, G - 60, 698, 60), PAL.rust, { ang: Math.PI / 2, ow: 1.4 });
+      for (const x of [146, 844]) g.fill(rect(x - 5, G - 60, 10, 60), PAL.ochre, { ang: Math.PI / 2, ow: 1.2 });
+      /* the paper itself, laid along the table and spilling to the ground */
+      g.bare(rect(150, G - 62, 690, 30), { ow: 1.3 });
+      const R = g.r;
+      for (let y = G - 55; y < G - 34; y += 6) for (let x = 160; x < 820;) { const l = 30 + R() * 70; g.stem([[x, y], [Math.min(820, x + l), y]], PAL.ink, 0.8); x += l + 10; }
+      g.fill(smooth([[840, G - 62], [880, G - 50], [902, G - 18], [930, G - 4], [960, G - 2], [960, G + 4], [924, G + 4], [892, G - 12], [866, G - 34], [840, G - 32]], true, 5), PAL.linen, { ang: 0.6, ow: 1.3 });
+      g.fill(ell(840, G - 47, 5, 16, 12), PAL.buff, { ang: Math.PI / 2, ow: 1.1 });
+      /* the new machine steps off the end of the page and walks on towards 2021 */
+      machine(g, 1010, { s: 0.92, pose: 'walk', armF: [40, 20], armB: [-30, 10] });
+      sprig(g, 1150, 20);
+    }
+  };
+  TRANSFORMER.lat = TRANSFORMER.cap.map(c => c[0]).join(' · ');
+  SCENES.splice(SCENES.indexOf(oath) + 1, 0, TRANSFORMER);
+})();
+
 /* ===== THE LATER CLOTH: one new scene a month, sewn in just before the frayed end =====
    To add a scene, put a scene object in LATER (oldest first) directly above the NEXT SCENE marker.
    Scenes already here stay where they are, so links to earlier scenes keep working.
@@ -3329,7 +3384,7 @@ const LATER = [
 
 const SCALE = 1.25;
 let TOTAL = 0;
-SCENES.forEach((s, i) => { s.k = s.k || SCALE; s.W = Math.round(s.w * s.k); s.x = TOTAL; s.seed = 1009 + i * 97; s.i = i; TOTAL += s.W; });
+SCENES.forEach((s, i) => { s.k = s.k || SCALE; s.W = Math.round(s.w * s.k); s.x = TOTAL; s.seed = s.seedFix || (1009 + i * 97); s.i = i; TOTAL += s.W; });
 
 /* ===== loom: renders scenes onto canvases ===== */
 let LINEN = null;
@@ -3527,8 +3582,8 @@ const LoomSound = (function () {
     for (let c = 0; c < 2; c++) { const d = buf.getChannelData(c); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6); }
     return buf;
   }
-  function init() {
-    ac = new (window.AudioContext || window.webkitAudioContext)();
+  function init(ctx) {
+    ac = ctx || new (window.AudioContext || window.webkitAudioContext)();
     out = ac.createGain(); out.gain.value = 0;
     const comp = ac.createDynamicsCompressor(); comp.threshold.value = -18; comp.ratio.value = 3;
     verb = ac.createConvolver(); verb.buffer = impulse(2.8);
@@ -3558,8 +3613,8 @@ const LoomSound = (function () {
     o.connect(g).connect(out); o.start(t); o.stop(t + 0.32);
   }
   function note(d) { const M = mood.mode, o = Math.floor(d / M.length), i = ((d % M.length) + M.length) % M.length; return mood.root + 12 * (o + mood.oct) + M[i]; }
-  function tick() {
-    const ahead = ac.currentTime + 0.25, dur = 60 / mood.bpm / 2;
+  function sched(ahead) {
+    const dur = 60 / mood.bpm / 2;
     while (next < ahead) {
       const beat = step % 8;
       if (mood.drum && (beat === 0 || beat === 4 || (mood.drum > 0.5 && (beat === 6 || beat === 7)))) drum(next, beat % 4 === 0 ? 1 : 0.55);
@@ -3574,6 +3629,12 @@ const LoomSound = (function () {
       next += dur; step++;
     }
   }
+  function tick() { sched(ac.currentTime + 0.25); }
+  function setMood(m, at) {
+    if (m === moodName) return;
+    moodName = m; mood = MOODS[m];
+    if (ac) drone.forEach((o, i) => o.frequency.setTargetAtTime(hz(mood.root - 12 + [0, 7, -12][i]), at === undefined ? ac.currentTime : at, 0.8));
+  }
   return {
     get on() { return on; },
     toggle() {
@@ -3584,10 +3645,20 @@ const LoomSound = (function () {
       else { out.gain.cancelScheduledValues(t); out.gain.setTargetAtTime(0, t, 0.25); clearInterval(timer); setTimeout(() => { if (!on) ac.suspend(); }, 1200); }
       return on;
     },
-    scene(sc) {
-      const m = moodFor(sc); if (m === moodName) return;
-      moodName = m; mood = MOODS[m];
-      if (ac) drone.forEach((o, i) => o.frequency.setTargetAtTime(hz(mood.root - 12 + [0, 7, -12][i]), ac.currentTime, 0.8));
+    scene(sc) { setMood(moodFor(sc)); },
+    /* renders the music for a recorded unroll: plan is [[seconds, scene], …] */
+    offline(plan, total, sr = 48000) {
+      const keep = [ac, out, verb, drone, mood, moodName, next, step, deg];
+      moodName = moodFor(plan[0][1]); mood = MOODS[moodName];
+      init(new OfflineAudioContext(2, Math.ceil(total * sr), sr));
+      out.gain.setValueAtTime(0.0001, 0); out.gain.linearRampToValueAtTime(0.9, 1.5);
+      out.gain.setValueAtTime(0.9, Math.max(2, total - 3.5)); out.gain.linearRampToValueAtTime(0, total - 0.1);
+      next = 0.15; step = 0; deg = 2;
+      for (let t = 0, j = 0; t < total - 1; t += 0.05) {
+        while (j < plan.length && plan[j][0] <= t) { setMood(moodFor(plan[j][1]), t); j++; }
+        sched(t + 0.05);
+      }
+      return ac.startRendering().then(buf => { [ac, out, verb, drone, mood, moodName, next, step, deg] = keep; return buf; });
     }
   };
 })();
@@ -3775,7 +3846,13 @@ const LoomSound = (function () {
       showFrame(sc, 0);
     });
     if (keep) scroller.scrollLeft = frac * TOTAL * k - scroller.clientWidth / 2;
-    buildRuler(); schedule(); update();
+    buildRuler(); fitYears(); schedule(); update();
+  }
+  /* year labels never collide: where two would touch, the later year keeps its place */
+  function fitYears() {
+    const bs = [...years.querySelectorAll('button')]; bs.forEach(b => b.style.visibility = '');
+    let edge = Infinity;
+    for (let i = bs.length - 1; i >= 0; i--) { const b = bs[i]; if (!b.offsetWidth) continue; if (b.offsetLeft + b.offsetWidth + 4 > edge) b.style.visibility = 'hidden'; else edge = b.offsetLeft; }
   }
 
   /* ---------- the loop: frame flipping and unrolling ---------- */
