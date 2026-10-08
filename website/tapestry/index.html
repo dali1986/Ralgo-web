@@ -242,10 +242,44 @@ function variants(h) {
   }
   return (VC[h] = out);
 }
+/* outlines are stem stitch in dyed wool, as at Bayeux: dark blue round red, red round yellow, dark green round light green */
 const OUT = {};
-OUT[PAL.terra] = PAL.ink; OUT[PAL.rust] = PAL.ink; OUT[PAL.ochre] = PAL.rust; OUT[PAL.buff] = PAL.rust;
-OUT[PAL.sage] = PAL.dkgreen; OUT[PAL.green] = PAL.ink; OUT[PAL.dkgreen] = PAL.ink; OUT[PAL.teal] = PAL.ink;
-OUT[PAL.indigo] = PAL.ink; OUT[PAL.blue] = PAL.indigo; OUT[PAL.ink] = PAL.ink; OUT[PAL.pale] = PAL.indigo;
+OUT[PAL.terra] = PAL.indigo; OUT[PAL.rust] = PAL.ink; OUT[PAL.ochre] = PAL.rust; OUT[PAL.buff] = PAL.rust;
+OUT[PAL.sage] = PAL.dkgreen; OUT[PAL.green] = PAL.indigo; OUT[PAL.dkgreen] = PAL.ink; OUT[PAL.teal] = PAL.indigo;
+OUT[PAL.indigo] = PAL.ink; OUT[PAL.blue] = PAL.indigo; OUT[PAL.ink] = PAL.ink; OUT[PAL.pale] = PAL.indigo; OUT[PAL.linen] = PAL.rust;
+const FACE_OUT = '#3a3c52';
+function outFor(col, given) { if (given && given !== PAL.ink) return given; return OUT[col] || mixHex(col, -0.58); }
+
+/* ---------- the hand: no line is ruled, no curve is compassed ---------- */
+function densify(P, closed, st) {
+  const out = [], n = P.length, segs = closed ? n : n - 1;
+  for (let i = 0; i < segs; i++) {
+    const a = P[i], b = P[(i + 1) % n], l = Math.hypot(b[0] - a[0], b[1] - a[1]), k = Math.max(1, Math.ceil(l / st));
+    for (let j = 0; j < k; j++) out.push([a[0] + (b[0] - a[0]) * j / k, a[1] + (b[1] - a[1]) * j / k]);
+  }
+  if (!closed) out.push(P[n - 1].slice());
+  return out;
+}
+/* a slow drift and a quicker tremor, offset along the normal and keyed to the length along the line,
+   so a moving limb carries the same unsteadiness from frame to frame */
+function handPath(P, closed, sv, scale = 1) {
+  if (P.length < 2) return P;
+  const Q = densify(P, closed, 8), n = Q.length, s = new Float64Array(n);
+  for (let i = 1; i < n; i++) s[i] = s[i - 1] + Math.hypot(Q[i][0] - Q[i - 1][0], Q[i][1] - Q[i - 1][1]);
+  const L = s[n - 1] + (closed ? Math.hypot(Q[0][0] - Q[n - 1][0], Q[0][1] - Q[n - 1][1]) : 0);
+  if (L < 5) return P;
+  const amp = Math.min(1.25, Math.max(0.14, L * 0.0065)) * scale, R = rng((sv ^ 0x5bd1e995) >>> 0);
+  const p1 = R() * TAU, p2 = R() * TAU, c1 = 2 + ((R() * 2) | 0), k1 = TAU / 58, k2 = TAU / 19;
+  return Q.map((q, i) => {
+    const a = Q[i > 0 ? i - 1 : (closed ? n - 1 : 0)], b = Q[i < n - 1 ? i + 1 : (closed ? 0 : n - 1)];
+    let tx = b[0] - a[0], ty = b[1] - a[1]; const l = Math.hypot(tx, ty) || 1; tx /= l; ty /= l;
+    const u = s[i] / L;
+    const lo = closed ? Math.sin(TAU * c1 * u + p1) : Math.sin(s[i] * k1 + p1);
+    const hi = closed ? (1 - u) * Math.sin(s[i] * k2 + p2) + u * Math.sin((s[i] - L) * k2 + p2) : Math.sin(s[i] * k2 + p2);
+    const d = amp * (0.68 * lo + 0.32 * hi);
+    return [q[0] - ty * d, q[1] + tx * d];
+  });
+}
 
 /* ---------- geometry ---------- */
 function circ(cx, cy, r, n = 20) { const p = []; for (let i = 0; i < n; i++) { const a = i / n * TAU; p.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]); } return p; }
@@ -339,6 +373,15 @@ class Stitch {
       if (perSeg) M.occ.push([Math.min(xa, xb), Math.max(xa, xb)]); else { lo = Math.min(lo, xa, xb); hi = Math.max(hi, xa, xb); }
     }
     if (!perSeg && lo <= hi) M.occ.push([lo, hi]);
+    if (M.yb !== undefined) {
+      for (let i = 0; i < segs; i++) {
+        const a = P[i], b = P[(i + 1) % n];
+        if (a[1] >= M.yb && b[1] >= M.yb) continue;
+        let xa = a[0], xb = b[0];
+        if (a[1] >= M.yb || b[1] >= M.yb) { const t = (M.yb - a[1]) / (b[1] - a[1]), xc = a[0] + (b[0] - a[0]) * t; if (a[1] >= M.yb) xa = xc; else xb = xc; }
+        M.occTop.push([Math.min(xa, xb), Math.max(xa, xb)]);
+      }
+    }
   }
   save() { this.st.push(this.m.slice()); }
   restore() { this.m = this.st.pop(); }
@@ -374,23 +417,26 @@ class Stitch {
     const P = this.tps(pts); if (P.length < 3) return;
     if (this.M) { this._meas(P, true, false); return; }
     this._seed('f', col, pts.length);
-    if (this._sk(P)) { this._sketch(P, true); return; }
-    this._lay(P, col, o, this._frame(pts));
-    if (o.out !== false) this._stem(P, o.out || OUT[col] || PAL.ink, o.ow || 2, true);
+    const H = handPath(P, true, this.sv);
+    if (this._sk(P)) { this._sketch(H, true); return; }
+    this._lay(H, col, o, this._frame(pts));
+    if (o.out !== false) this._stem(H, outFor(col, o.out), (o.ow || 2) * 0.86, true);
   }
   bare(pts, o = {}) {
     const P = this.tps(pts);
     if (this.M) { this._meas(P, true, false); return; }
     this._seed('b', o.out || '', pts.length);
-    if (this._sk(P)) { this._sketch(P, true); return; }
-    this._bare(P); if (o.out !== false) this._stem(P, o.out || PAL.ink, o.ow || 1.7, true);
+    const H = handPath(P, true, this.sv, 0.7);
+    if (this._sk(P)) { this._sketch(H, true); return; }
+    this._bare(H); if (o.out !== false) this._stem(H, (!o.out || o.out === PAL.ink) ? FACE_OUT : o.out, (o.ow || 1.7) * 0.9, true);
   }
   stem(pts, col, w = 2, closed = false) {
     const P = this.tps(pts); if (P.length < 2) return;
     if (this.M) { this._meas(P, closed, true); return; }
     this._seed('s', col, pts.length);
-    if (this._sk(P)) { this._sketch(P, closed); return; }
-    this._stem(P, col, w, closed);
+    const H = handPath(P, closed, this.sv);
+    if (this._sk(P)) { this._sketch(H, closed); return; }
+    this._stem(H, col, w, closed);
   }
   dot(x, y, r, col) {
     const c = this.tp([x, y]);
@@ -405,14 +451,14 @@ class Stitch {
     const P = this.tps(pts);
     if (this.M) { this._meas(P, true, false); return; }
     this._seed('n', cols.join(''), pts.length);
-    if (this._sk(P)) { this._sketch(P, true); return; }
+    if (this._sk(P)) { this._sketch(handPath(P, true, this.sv), true); return; }
     let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; for (const p of P) { x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]); y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]); }
     const c = this.ctx; c.save(); this.path(P); c.clip();
     const bw = o.bw || 10; let i = 0;
     if (o.vertical) { for (let xx = x0 - 1; xx < x1; xx += bw, i++) this._lay(rect(xx, y0 - 2, bw + 0.6, y1 - y0 + 4), cols[i % cols.length], { ang: Math.PI / 2 }); }
     else { for (let yy = y0 - 1; yy < y1; yy += bw, i++) this._lay(rect(x0 - 2, yy, x1 - x0 + 4, bw + 0.6), cols[i % cols.length], { ang: 0.02 }); }
     c.restore();
-    if (o.out !== false) this._stem(P, o.out || PAL.ink, o.ow || 1.8, true);
+    if (o.out !== false) this._stem(handPath(P, true, this.sv), outFor(cols[0], o.out), (o.ow || 1.8) * 0.86, true);
   }
   _tile(col, v) {
     const key = col + '|' + v;
@@ -484,8 +530,19 @@ class Stitch {
       let ax = 0, ay = 0; for (let i = 1; i < n; i++) { const dx = P[i][0] - P[i - 1][0], dy = P[i][1] - P[i - 1][1]; if (dx < 0 || (dx === 0 && dy < 0)) { ax -= dx; ay -= dy; } else { ax += dx; ay += dy; } }
       const ang = Math.atan2(ay, ax), pat = this._cord(col, w), u = pat._u;
       pat.setTransform(new DOMMatrix().translate(P[0][0], P[0][1]).rotate((ang + 1.1) / D).translate(R() * u * 12, 0).scale(u * pat._per / pat._pxw));
-      c.lineCap = 'round'; c.lineJoin = 'round'; c.lineWidth = w * 1.05; c.strokeStyle = pat;
-      c.beginPath(); c.moveTo(P[0][0], P[0][1]); for (let i = 1; i < n; i++) c.lineTo(P[i][0], P[i][1]); if (closed) c.closePath(); c.stroke();
+      c.lineCap = 'round'; c.lineJoin = 'round'; c.strokeStyle = pat;
+      const Q = closed ? P.concat([P[0]]) : P, LV = [0.8, 0.93, 1.07, 1.2], paths = LV.map(() => new Path2D()), q1 = R() * TAU, q2 = R() * TAU;
+      let s = 0, cs = 0, start = 0;
+      for (let i = 1; i < Q.length; i++) {
+        const l = Math.hypot(Q[i][0] - Q[i - 1][0], Q[i][1] - Q[i - 1][1]); s += l; cs += l;
+        if (cs >= 9 || i === Q.length - 1) {
+          const v = 0.62 * Math.sin((s - cs / 2) * TAU / 41 + q1) + 0.38 * Math.sin((s - cs / 2) * TAU / 15 + q2);
+          const p = paths[Math.max(0, Math.min(3, Math.floor((v + 1) * 2)))];
+          p.moveTo(Q[start][0], Q[start][1]); for (let j = start + 1; j <= i; j++) p.lineTo(Q[j][0], Q[j][1]);
+          start = i; cs = 0;
+        }
+      }
+      LV.forEach((lv, k) => { c.lineWidth = w * 1.05 * lv; c.stroke(paths[k]); });
       return;
     }
     const c = this.ctx, V = variants(col).slice(0, 3), R = this.rs;
@@ -577,53 +634,132 @@ function cordTile(col, w, S) {
   return c;
 }
 
-/* ---------- stitched lettering ---------- */
+/* ---------- stitched lettering: single-thread capitals from letters.js, each set by hand ---------- */
 const MEAS = newCanvas(8, 8).getContext('2d'), TEXTS = new Map();
-const by0 = (size, pad) => pad + size * 1.02;
 function stitchText(g, str, x, y, size, o = {}) {
   const m = g.m, msc = Math.hypot(m[0], m[1]);
   if (msc !== 1 || m[4] || m[5]) { const p = g.tp([x, y]); x = p[0]; y = p[1]; size *= msc; if (o.maxW) o = Object.assign({}, o, { maxW: o.maxW * msc }); }
-  const weight = o.weight || 800;
-  let font = `${weight} ${size}px ${CAP_FONT}`; MEAS.font = font;
-  const track = size * (o.track ?? 0.07);
-  const chars = [...str];
-  let ws = chars.map(ch => MEAS.measureText(ch).width + track), tot = ws.reduce((a, b) => a + b, 0);
-  if (o.maxW && tot > o.maxW) { size *= o.maxW / tot; font = `${weight} ${size}px ${CAP_FONT}`; MEAS.font = font; ws = chars.map(ch => MEAS.measureText(ch).width + size * (o.track ?? 0.07)); tot = ws.reduce((a, b) => a + b, 0); }
+  const weight = o.weight || 800, trackK = o.track ?? 0.04;
+  let tot = textW(str, size, size * trackK);
+  if (o.maxW && tot > o.maxW) { size *= o.maxW / tot; tot = textW(str, size, size * trackK); }
   let x0 = x; if (o.align === 'center') x0 = x - tot / 2; else if (o.align === 'right') x0 = x - tot;
-  const S = g.S, pad = 6, hh = size * 1.35;
-  if (g.M) { g._meas([[x0, y - size * 0.75], [x0 + tot, y - size * 0.75], [x0 + tot, y + 2], [x0, y + 2]], true, false); return tot; }
-  if ((o.sketch || g.skAt(x0 + tot / 2, y)) && g._skGate(x0 + tot / 2, y)) {
-    const c = g.ctx; c.save(); c.font = font; c.textBaseline = 'alphabetic'; c.lineWidth = 0.9; c.strokeStyle = 'rgba(92,62,40,0.7)';
-    let cx = x0; chars.forEach((ch, i) => { c.strokeText(ch, cx, y); cx += ws[i]; }); c.restore(); return tot;
-  }
-  const W = Math.ceil((tot + pad * 2) * S), H = Math.ceil((hh + pad * 2) * S);
-  g._seed('t', str, Math.round(size * 4));
-  const tkey = str + '|' + size.toFixed(3) + '|' + S + '|' + g.sv + '|' + (o.cols || [o.col]).join(',') + '|' + weight + '|' + (o.track ?? 0.07);
-  const hit = TEXTS.get(tkey);
-  if (hit) { g.ctx.drawImage(hit, x0 - pad, y - by0(size, pad), W / S, H / S); return tot; }
-  const oc = newCanvas(W, H);
-  const c = oc.getContext('2d'); c.setTransform(S, 0, 0, S, 0, 0); c.font = font; c.textBaseline = 'alphabetic'; c.textAlign = 'center';
-  const R = g.rs, by = pad + size * 1.02;
+  if (g.M) { g._meas([[x0, y - size * CAP_H - 1], [x0 + tot, y - size * CAP_H - 1], [x0 + tot, y + 2], [x0, y + 2]], true, false); return tot; }
+  const sketch = (o.sketch || g.skAt(x0 + tot / 2, y)) && g._skGate(x0 + tot / 2, y);
   const cols = o.cols || (o.col ? [o.col] : [PAL.ink, PAL.terra, PAL.ink, PAL.dkgreen, PAL.ink, PAL.indigo]);
-  let cx = pad, word = 0;
-  chars.forEach((ch, i) => {
-    if (ch === ' ') { word++; cx += ws[i]; return; }
-    c.save(); c.translate(cx + ws[i] / 2 - track / 2, by + (R() - 0.5) * size * 0.05); c.rotate((R() - 0.5) * 0.08);
-    c.fillStyle = cols[word % cols.length]; c.fillText(ch, 0, 0);
-    c.lineWidth = 0.7; c.strokeStyle = 'rgba(20,16,12,0.35)'; c.strokeText(ch, 0, 0);
-    c.restore(); cx += ws[i];
+  const track = size * trackK, sc = size * CAP_H / 10, w = size * (weight >= 700 ? 0.118 : 0.085);
+  const J = rng((hstr(str + '|' + size.toFixed(2)) ^ g.seed) >>> 0);
+  let cx = x0, word = 0;
+  [...str].forEach((ch, i) => {
+    const adv = glyphAdv(ch, size, track);
+    if (ch === ' ') { word++; cx += adv; return; }
+    const col = cols[word % cols.length], gl = glyphOf(ch);
+    if (!gl) {
+      const c = g.ctx; c.save(); c.font = `${weight} ${size}px ${CAP_FONT}`; c.fillStyle = sketch ? 'rgba(92,62,40,0.6)' : col; c.fillText(ch, cx, y); c.restore();
+      cx += adv; return;
+    }
+    const small = ch !== ch.toUpperCase(), s2 = sc * (small ? 0.72 : 1) * (1 + (J() - 0.5) * 0.09);
+    const rot = (J() - 0.5) * 0.08, dy = (J() - 0.5) * size * 0.05, cr = Math.cos(rot), sr = Math.sin(rot);
+    const ox = cx + (GLYPH_GAP / 2 + gl.w / 2) * sc * (small ? 0.72 : 1), oy = y - 5 * s2 + dy;
+    gl.s.forEach((st, k) => {
+      const P = st.p.map(([gx, gy]) => { const u = (gx - gl.w / 2) * s2, v = (gy - 5) * s2; return [ox + u * cr - v * sr, oy + u * sr + v * cr]; });
+      g._seed('L', ch + col, k);
+      const H = handPath(P, st.closed, g.sv, 0.45);
+      if (sketch) g._sketch(H, st.closed); else g._stem(H, col, st.dot ? w * 1.5 : w * (0.94 + J() * 0.12), st.closed);
+    });
+    cx += adv;
   });
-  c.globalCompositeOperation = 'source-atop';
-  const span = tot + pad * 2, ht = hh + pad * 2, step = Math.max(1.3, size * 0.06);
-  for (let k = -ht, n = 0; k < span; k += step, n++) {
-    c.strokeStyle = n % 2 ? 'rgba(255,238,205,0.2)' : 'rgba(0,0,0,0.24)'; c.lineWidth = step * 0.42;
-    c.beginPath(); c.moveTo(k, 0); c.lineTo(k + ht * 0.55, ht); c.stroke();
-  }
-  if (TEXTS.size > 600) TEXTS.clear();
-  TEXTS.set(tkey, oc);
-  g.ctx.drawImage(oc, x0 - pad, y - by, W / S, H / S);
   return tot;
 }
+/* a small stitched stop between words, as some of the inscriptions have */
+function wordStop(g, x, y, size, col) {
+  const sc = size * CAP_H / 10, P = ell(x, y - 5.2 * sc, 0.32 * sc, 0.32 * sc, 6);
+  if (g.M) return;
+  g._seed('L', '·' + col, 0); g._stem(P, col, size * 0.1, true);
+}
+
+/* ===== stitched capitals: single-thread letters in the manner of the Bayeux inscriptions =====
+   each glyph is a set of strokes on a grid ten units tall (0 at the top, 10 on the line), worked in stem stitch */
+const GLYPHS = (() => {
+  const A = (cx, cy, rx, ry, a0, a1, n = 12) => arc(cx, cy, rx, ry, a0, a1, n);
+  const sm = (P, n = 3) => smooth(P, false, n);
+  const O = (cx, cy, rx, ry) => ({ p: ell(cx, cy, rx, ry, 18), closed: true });
+  const dot = (x, y) => ({ p: ell(x, y, 0.45, 0.45, 6), closed: true, dot: true });
+  const G = {
+    A: [6, [[0, 10], [2.3, 0], [3.7, 0], [6, 10]], [[1.2, 6.2], [4.8, 6.2]]],
+    B: [5, [[0, 10], [0, 0], [2.8, 0]].concat(A(2.8, 2.5, 2, 2.5, -Math.PI / 2, Math.PI / 2), [[0, 5]]), [[0, 5], [3.1, 5]].concat(A(3.1, 7.5, 2.1, 2.5, -Math.PI / 2, Math.PI / 2), [[0, 10]])],
+    C: [5.6, A(3.1, 5, 3.1, 5, -0.8, -5.48, 16)],
+    D: [5.8, [[0, 0], [2, 0]].concat(A(2, 5, 3.8, 5, -Math.PI / 2, Math.PI / 2, 14), [[0, 10], [0, 0]])],
+    E: [4.8, [[4.8, 0], [0, 0], [0, 10], [4.8, 10]], [[0, 4.9], [3.8, 4.9]]],
+    F: [4.8, [[4.8, 0], [0, 0], [0, 10]], [[0, 4.9], [3.8, 4.9]]],
+    G: [6, A(3.1, 5, 3.1, 5, -0.8, -5.48, 16), [[3.4, 5.6], [6, 5.6], [6, 8.6]]],
+    H: [5.4, [[0, 0], [0, 10]], [[5.4, 0], [5.4, 10]], [[0, 5], [5.4, 5]]],
+    I: [0, [[0, 0], [0, 10]]],
+    J: [3.2, [[3.2, 0], [3.2, 7.8]].concat(A(1.6, 7.8, 1.6, 2.2, 0, Math.PI, 8))],
+    K: [5.2, [[0, 0], [0, 10]], [[5, 0], [0, 5.6]], [[1.7, 4.3], [5.2, 10]]],
+    L: [4.6, [[0, 0], [0, 10], [4.6, 10]]],
+    M: [6.6, [[0, 10], [0.8, 0], [3.3, 7.2], [5.8, 0], [6.6, 10]]],
+    N: [5.2, [[0, 10], [0, 0], [5.2, 10], [5.2, 0]]],
+    O: [6.2, O(3.1, 5, 3.1, 5)],
+    P: [5, [[0, 10], [0, 0], [2.8, 0]].concat(A(2.8, 2.6, 2.2, 2.6, -Math.PI / 2, Math.PI / 2), [[0, 5.2]])],
+    Q: [6.2, O(3.1, 5, 3.1, 5), [[3.6, 8.2], [6.6, 11]]],
+    R: [5.4, [[0, 10], [0, 0], [2.8, 0]].concat(A(2.8, 2.6, 2.2, 2.6, -Math.PI / 2, Math.PI / 2), [[0, 5.2]]), [[2.2, 5.2], [5.4, 10]]],
+    S: [4.8, sm([[4.7, 1.3], [3.4, 0.1], [1.5, 0.2], [0.3, 1.8], [0.8, 3.8], [2.6, 5], [4.2, 6.2], [4.8, 8.1], [3.6, 9.8], [1.4, 9.9], [0, 8.6]])],
+    T: [5.8, [[0, 0], [5.8, 0]], [[2.9, 0], [2.9, 10]]],
+    U: [5.2, [[0, 0], [0, 7]].concat(A(2.6, 7, 2.6, 3, Math.PI, 0, 10), [[5.2, 0]])],
+    V: [5.8, [[0, 0], [2.9, 10], [5.8, 0]]],
+    W: [8, [[0, 0], [2, 10], [4, 1.6], [6, 10], [8, 0]]],
+    X: [5.4, [[0, 0], [5.4, 10]], [[5.4, 0], [0, 10]]],
+    Y: [5.6, [[0, 0], [2.8, 5], [5.6, 0]], [[2.8, 5], [2.8, 10]]],
+    Z: [5, [[0, 0], [5, 0], [0, 10], [5, 10]]],
+    0: [5, O(2.5, 5, 2.5, 5)],
+    1: [2.6, [[0.4, 1.8], [2.4, 0], [2.4, 10]]],
+    2: [5, sm([[0.2, 2.2], [1.4, 0.3], [3.4, 0.2], [4.7, 1.8], [4, 4.4]]).concat([[0, 10], [5, 10]])],
+    3: [5, sm([[0.3, 1], [1.8, 0.1], [3.6, 0.3], [4.5, 2], [3.8, 3.9], [2, 4.8]]), sm([[2, 4.8], [4, 5.6], [4.8, 7.6], [3.8, 9.6], [1.8, 10], [0, 9]])],
+    4: [5.2, [[3.8, 10], [3.8, 0], [0, 7], [5.2, 7]]],
+    5: [5, [[4.6, 0], [0.7, 0], [0.3, 4.4]], sm([[0.3, 4.4], [2.4, 3.8], [4.4, 4.8], [4.9, 7.2], [3.8, 9.6], [1.6, 10], [0, 8.8]])],
+    6: [5, sm([[4.4, 0.6], [2.6, 0.1], [0.8, 1.8], [0.1, 5], [0.4, 8.4], [2.4, 10], [4.4, 8.9], [4.8, 6.8], [3.6, 5], [1.6, 5.1], [0.2, 6.6]])],
+    7: [5, [[0, 0], [5, 0], [1.8, 10]]],
+    8: [5, { p: ell(2.5, 2.6, 2.1, 2.6, 14), closed: true }, { p: ell(2.5, 7.4, 2.5, 2.6, 14), closed: true }],
+    9: [5, sm([[4.6, 3.6], [3.4, 5], [1.4, 5], [0.1, 3.3], [0.5, 1], [2.4, 0], [4.3, 0.8], [4.9, 3.4], [4.4, 7.4], [2.6, 9.8], [0.4, 9.4]])],
+    '+': [5.4, [[0, 4.6], [5.4, 4.6]], [[2.7, 1.9], [2.7, 7.3]]],
+    '-': [3.4, [[0, 5.6], [3.4, 5.6]]],
+    '–': [5, [[0, 5.6], [5, 5.6]]],
+    '—': [7, [[0, 5.6], [7, 5.6]]],
+    '·': [0.9, dot(0.45, 5.4)],
+    '.': [0.9, dot(0.45, 9.4)],
+    ',': [1.2, [[1, 8.8], [1, 10], [0.2, 11.6]]],
+    ':': [0.9, dot(0.45, 3.6), dot(0.45, 9.4)],
+    ';': [1.2, dot(0.8, 3.6), [[1, 8.8], [1, 10], [0.2, 11.6]]],
+    '’': [1.2, [[1, 0], [1, 1.4], [0.2, 3]]],
+    "'": [1.2, [[1, 0], [1, 1.4], [0.2, 3]]],
+    '‘': [1.2, [[0.4, 3], [0.2, 1.6], [1, 0]]],
+    '“': [3, [[0.4, 3], [0.2, 1.6], [1, 0]], [[2.2, 3], [2, 1.6], [2.8, 0]]],
+    '”': [3, [[1, 0], [1, 1.4], [0.2, 3]], [[2.8, 0], [2.8, 1.4], [2, 3]]],
+    '"': [3, [[1, 0], [1, 1.4], [0.2, 3]], [[2.8, 0], [2.8, 1.4], [2, 3]]],
+    '?': [4.6, sm([[0.2, 2], [1.2, 0.2], [3.2, 0.1], [4.5, 1.6], [4, 3.8], [2.3, 5.2], [2.3, 7.2]]), dot(2.3, 9.4)],
+    '!': [0.9, [[0.45, 0], [0.45, 7]], dot(0.45, 9.4)],
+    '(': [2.2, sm([[2.2, -1], [0.5, 2], [0, 5], [0.5, 8], [2.2, 11]])],
+    ')': [2.2, sm([[0, -1], [1.7, 2], [2.2, 5], [1.7, 8], [0, 11]])],
+    '/': [4, [[0, 10.5], [4, -0.5]]],
+    '&': [5.4, sm([[5.4, 10], [1.2, 3.6], [1.6, 0.8], [3, 0.2], [4, 1.6], [3.2, 3.6], [0.6, 6], [0.4, 8.6], [2, 10], [3.8, 9.4], [5.4, 6.2]])],
+    '%': [6, O(1.2, 2, 1.2, 2), [[5.6, 0], [0.4, 10]], O(4.8, 8, 1.2, 2)],
+    '$': [4.8, sm([[4.6, 2], [3.2, 1], [1.2, 1.2], [0.4, 3], [2.4, 4.8], [4.4, 6.6], [4, 8.8], [1.8, 9.2], [0, 8]]), [[2.4, -0.6], [2.4, 10.6]]],
+    '×': [4.4, [[0, 3], [4.4, 7.6]], [[4.4, 3], [0, 7.6]]],
+    '=': [4.6, [[0, 4], [4.6, 4]], [[0, 7], [4.6, 7]]]
+  };
+  const out = {};
+  for (const [ch, [w, ...strokes]] of Object.entries(G)) out[ch] = { w, s: strokes.map(s => Array.isArray(s) ? { p: s, closed: false } : s) };
+  return out;
+})();
+const GLYPH_GAP = 1.6, GLYPH_SPACE = 4.2, CAP_H = 0.86;
+const glyphOf = ch => GLYPHS[ch] || GLYPHS[ch.toUpperCase()] || null;
+function glyphAdv(ch, size, track) {
+  const sc = size * CAP_H / 10;
+  if (ch === ' ') return GLYPH_SPACE * sc + track;
+  const gl = glyphOf(ch); if (!gl) { MEAS.font = `800 ${size}px ${CAP_FONT}`; return MEAS.measureText(ch).width + track; }
+  return ((gl.w + GLYPH_GAP) * (ch !== ch.toUpperCase() ? 0.72 : 1)) * sc + track;
+}
+const textW = (str, size, track = size * 0.04) => [...str].reduce((a, ch) => a + glyphAdv(ch, size, track), 0);
 
 /* ===== actors ===== */
 function sceneMap(x, y, f, s) { return p => [x + f * s * p[0], y + s * p[1]]; }
@@ -637,6 +773,9 @@ function armPts(A, sh, L1 = 27, L2 = 25) {
 
 /* A person in the Bayeux manner. Faces right when f=1. Feet at y. */
 const HS = 1.12;
+/* a Bayeux head in profile: egg-shaped skull, brow, the long nose drawn into the outline, lips and chin */
+const PROFILE = smooth([[-6, 9.6], [-10.4, 3], [-10.6, -3.6], [-7, -9.6], [-1, -11.6], [5, -10.4], [9, -6.6], [10.4, -3]], false, 3)
+  .concat([[10.3, -1.6], [14.6, 3.1], [11.2, 4.3], [11.6, 5.6], [10.5, 6.6], [11.3, 8.3]], smooth([[11.3, 8.3], [9.8, 10.8], [5, 11.7], [0, 10.7], [-6, 9.6]], false, 3).slice(1, -1));
 function person(g, x, o = {}) {
   const R = g.r;
   const build = o.build ?? (0.9 + R() * 0.22), tall = o.tall ?? (0.95 + R() * 0.09);
@@ -662,7 +801,8 @@ function person(g, x, o = {}) {
   if (o.gown) L = [];
   const leanDeg = (o.lean !== undefined ? o.lean : ({ walk: 6, run: 13, kneel: 9, sit: 0, ride: 2, fall: 0 }[pose] ?? 0) + (pose === 'sit' ? 0 : (R() - 0.5) * 5)) + (pose === 'kneel' ? 3 + osc(5, off) : 0) + (o.nod ? osc(o.nod, off + 0.15) : 0);
   const hairStyle = o.hairStyle || (R() < 0.38 ? 'norman' : R() < 0.5 ? 'long' : 'crop');
-  const tache = o.moustache !== undefined ? o.moustache : (!o.gown && !o.beard && R() < 0.3);
+  const tache = (o.moustache !== undefined ? o.moustache : (!o.gown && !o.beard && R() < 0.3)) && !o.clean;
+  const hs = o.castHair || hairStyle;
   const aF = o.armF || [14, 10], pointF = aF[0] >= 76 && aF[0] <= 92 && Math.abs(aF[1] || 0) <= 3;
   const lookR = R(), look = o.look ?? ((pose === 'walk' || pose === 'stand') && !o.mouth && !pointF && lookR < 0.2 ? -1 : 1);
   const lean = leanDeg * D, lc = Math.cos(lean), ls = Math.sin(lean);
@@ -717,20 +857,24 @@ function person(g, x, o = {}) {
     if (o.hat === 'hood') g.fill(smooth([[hc[0] - hr - 4, hc[1] + 8], [hc[0] - hr - 3, hc[1] - 8], [hc[0] - 2, hc[1] - hr - 6], [hc[0] + hr, hc[1] - 6], [hc[0] + 6, sy + 6], [hc[0] - 12, sy + 8]], true, 3), o.hoodC || PAL.sage, { ow: 1.4 });
     if (o.gown && o.veil !== false) g.fill(smooth([[hc[0] - hr - 3, hc[1] + 14], [hc[0] - hr - 2, hc[1] - 6], [hc[0], hc[1] - hr - 4], [hc[0] + hr + 1, hc[1] - 4], [hc[0] + 4, hc[1] + 2], [hc[0] - 4, sy + 10], [hc[0] - 14, sy + 14]], true, 3), o.veilC || PAL.buff, { ow: 1.4, ang: 1.4 });
     const noHair = ['helm', 'mitre', 'hood'].includes(o.hat) || (o.gown && o.veil !== false) || o.bald;
-    if (!noHair && hairStyle === 'long') g.fill(smooth([[hc[0] - hr + 1, hc[1] - 2], [hc[0] - hr - 4, hc[1] + 8], [hc[0] - hr - 2, hc[1] + 17], [hc[0] - 4, hc[1] + 12]], true, 3), hair, { out, ow: 1.1, ang: 1.4 });
-    g.bare(circ(hc[0], hc[1], hr, 22), { ow: 1.7 });
-    g.stem([[hc[0] + hr - 1.5, hc[1] - 4], [hc[0] + hr + 4, hc[1] + 1.5], [hc[0] + hr - 1.5, hc[1] + 3.5]], PAL.ink, 1.3);
-    if (o.sleep) g.stem([[hc[0] + 3, hc[1] - 2], [hc[0] + 8, hc[1] - 1]], PAL.ink, 1.1); else g.dot(hc[0] + 5.5, hc[1] - 2.5, 1.4, PAL.ink);
-    if (o.mouth) { const mo = 0.5 + 0.5 * Math.abs(Math.sin(aph(off, 2))); g.fill(arc(hc[0] + 6.5, hc[1] + 4, 3.2, 1 + 2.6 * mo, 0, Math.PI, 6).concat([[hc[0] + 3.3, hc[1] + 4]]), PAL.rust, { out: PAL.ink, ow: 0.9, ang: 0 }); }
-    if (!noHair) {
-      const H = hairStyle === 'norman'
+    if (!noHair && hs === 'long') g.fill(smooth([[hc[0] - hr + 1, hc[1] - 2], [hc[0] - hr - 4, hc[1] + 8], [hc[0] - hr - 2, hc[1] + 17], [hc[0] - 4, hc[1] + 12]], true, 3), hair, { out, ow: 1.1, ang: 1.4 });
+    g.bare(PROFILE.map(([u, v]) => [hc[0] + u, hc[1] + v]), { ow: 1.6 });
+    if (o.sleep) g.stem([[hc[0] + 3, hc[1] - 2], [hc[0] + 8, hc[1] - 1]], PAL.ink, 1.1); else g.dot(hc[0] + 5.4, hc[1] - 2.4, 1.35, PAL.ink);
+    g.stem([[hc[0] + 3, hc[1] - 5.6], [hc[0] + 5.8, hc[1] - 6.4], [hc[0] + 8.2, hc[1] - 5.4]], FACE_OUT, 0.8);
+    if (o.glasses) { g.stem(circ(hc[0] + 5.6, hc[1] - 2.4, 3.6, 12).concat([[hc[0] + 9.2, hc[1] - 2.4]]), PAL.ink, 1); g.stem([[hc[0] + 2, hc[1] - 2.6], [hc[0] - 6, hc[1] - 1]], PAL.ink, 0.9); }
+    if (o.mouth) { const mo = 0.5 + 0.5 * Math.abs(Math.sin(aph(off, 2))); g.fill([[hc[0] + 11.6, hc[1] + 5.4], [hc[0] + 7.4, hc[1] + 6.4], [hc[0] + 10.9, hc[1] + 6.8 + 2.6 * mo]], PAL.rust, { out: PAL.rust, ow: 0.8, ang: 0 }); }
+    if (!noHair && hs === 'fringe') g.fill(arc(hc[0], hc[1], hr + 2.4, hr + 2.4, 128 * D, 214 * D, 9).concat(arc(hc[0], hc[1], hr - 2.2, hr - 2.2, 206 * D, 136 * D, 7)), hair, { out, ow: 1.1, ang: 1.2 });
+    else if (!noHair && hs === 'shaved') g.fill(arc(hc[0], hc[1], hr + 1.3, hr + 1.3, 196 * D, 318 * D, 10).concat(arc(hc[0], hc[1], hr - 1.1, hr - 1.1, 314 * D, 200 * D, 8)), hair, { out, ow: 0.9, ang: 0.8 });
+    else if (!noHair && hs === 'swept') g.fill(arc(hc[0], hc[1], hr + 4, hr + 4.5, 158 * D, 300 * D, 11).concat([[hc[0] + hr + 5, hc[1] - hr + 1], [hc[0] + hr + 1, hc[1] - 4], [hc[0] + 6, hc[1] - 6]], arc(hc[0], hc[1], hr - 1.2, hr - 1.2, 300 * D, 170 * D, 7)), hair, { out, ow: 1.2, ang: 0.3 });
+    else if (!noHair) {
+      const H = hs === 'norman'
         ? arc(hc[0], hc[1], hr + 2.5, hr + 2.5, 205 * D, 325 * D, 10).concat([[hc[0] + 4, hc[1] - 6], [hc[0] - 6, hc[1] - 5]])
-        : arc(hc[0], hc[1], hr + 2.5, hr + 2.5, (hairStyle === 'long' ? 140 : 155) * D, 322 * D, 12).concat([[hc[0] + 3, hc[1] - 6], [hc[0] - 5, hc[1] + 3]]);
+        : arc(hc[0], hc[1], hr + 2.5, hr + 2.5, (hs === 'long' ? 140 : 155) * D, 322 * D, 12).concat([[hc[0] + 3, hc[1] - 6], [hc[0] - 5, hc[1] + 3]]);
       g.fill(H, hair, { out, ow: 1.2, ang: 0.8 });
-      if (hairStyle === 'norman') g.stem(arc(hc[0], hc[1], hr - 0.5, hr - 0.5, 160 * D, 205 * D, 4), mixHex(hair, 0.25), 0.9);
+      if (hs === 'norman') g.stem(arc(hc[0], hc[1], hr - 0.5, hr - 0.5, 160 * D, 205 * D, 4), mixHex(hair, 0.25), 0.9);
     }
-    if (o.beard) g.fill(smooth([[hc[0] + hr - 1, hc[1] + 3], [hc[0] + 6, hc[1] + hr + 9], [hc[0] - 3, hc[1] + hr + 4], [hc[0] - 4, hc[1] + 6]], true, 3), o.beardC || PAL.buff, { ow: 1.2, ang: 1.3 });
-    if (tache) g.stem([[hc[0] + 3, hc[1] + 6], [hc[0] + 9, hc[1] + 4.5], [hc[0] + 13, hc[1] + 8]], o.beardC || hair, 1.7);
+    if (o.beard && !o.shaven) g.fill(smooth([[hc[0] + 11.4, hc[1] + 5.8], [hc[0] + 12.2, hc[1] + 12.4], [hc[0] + 7, hc[1] + 17], [hc[0] - 1, hc[1] + 12.4], [hc[0] - 3, hc[1] + 6], [hc[0] + 5, hc[1] + 7.6]], true, 3), o.beardC || PAL.buff, { ow: 1.2, ang: 1.3 });
+    if (tache) g.stem([[hc[0] + 8.4, hc[1] + 4.4], [hc[0] + 11.8, hc[1] + 4.9], [hc[0] + 13.6, hc[1] + 8]], o.beardC || hair, 1.7);
     switch (o.hat) {
       case 'helm': g.fill([[hc[0] - hr - 1.5, hc[1] - 1], [hc[0] + 1, hc[1] - hr - 15], [hc[0] + hr + 1.5, hc[1] - 1]], o.helmC || PAL.blue, { ow: 1.4 }); g.stem([[hc[0] + hr - 2, hc[1] - 2], [hc[0] + hr - 2, hc[1] + 6]], PAL.indigo, 2.6); break;
       case 'crown': g.fill([[hc[0] - 10, hc[1] - 7], [hc[0] - 11, hc[1] - 22], [hc[0] - 5, hc[1] - 14], [hc[0] + 1, hc[1] - 25], [hc[0] + 6, hc[1] - 14], [hc[0] + 12, hc[1] - 22], [hc[0] + 12, hc[1] - 7]], PAL.ochre, { ow: 1.4, ang: 1.5 }); g.dot(hc[0] + 1, hc[1] - 11, 1.6, PAL.terra); break;
@@ -745,6 +889,17 @@ function person(g, x, o = {}) {
     else g.stem([[bx(-24), hy - 4], [bx(-12), hy - 1], [bx(1), hy - 3], [bx(14), hy - 1], [bx(26), hy - 4]], hem, 2);
     if (!o.gown && pose !== 'sit' && pose !== 'ride') g.stem([[1, hy - 3], [0.5, hy - 17]], mixHex(tun, -0.5), 1.2);
     g.stem([[bx(-9), sy + 1], [bx(-4), sy + 7], [bx(4), sy + 8], [bx(10), sy + 2]], hem, 1.6);
+    if (o.jacket) {
+      g.stem([[bx(-11), sy + 2], [bx(-1), sy + 22], [bx(1), hy - 4]], o.jacket, 1.5); g.stem([[bx(11), sy + 2], [bx(4), sy + 20]], o.jacket, 1.5);
+      g.stem([[bx(-13), sy + 14], [bx(-10), sy + 40], [bx(-15), hy - 12]], mixHex(o.jacket, -0.2), 1.1);
+    }
+    if (o.tie) { g.fill([[bx(1.5), sy + 2], [bx(5), sy + 2], [bx(4.6), sy + 6], [bx(6.5), sy + 44], [bx(3.2), sy + 50], [bx(0.2), sy + 44], [bx(2), sy + 6]], o.tie, { ow: 1, ang: Math.PI / 2 }); }
+    if (o.badge === 'rocket') {
+      const cx = bx(4), cy = sy + 22;
+      g.fill([[cx - 2.6, cy + 6], [cx - 2.6, cy - 3], [cx, cy - 8.5], [cx + 2.6, cy - 3], [cx + 2.6, cy + 6]], PAL.linen, { ow: 0.9, ang: Math.PI / 2 });
+      g.fill([[cx - 2.6, cy + 1], [cx - 5.5, cy + 7], [cx - 2.6, cy + 6]], PAL.terra, { ow: 0.8, ang: 0 }); g.fill([[cx + 2.6, cy + 1], [cx + 5.5, cy + 7], [cx + 2.6, cy + 6]], PAL.terra, { ow: 0.8, ang: 0 });
+      g.fill([[cx - 1.8, cy + 6.5], [cx, cy + 11.5], [cx + 1.8, cy + 6.5]], PAL.ochre, { ow: 0.7, ang: 0 });
+    }
     g.stem([[1, sy + 1], [1, sy - 4]], PAL.ink, 1.4); g.stem([[6, sy + 1], [6, sy - 4]], PAL.ink, 1.4);
     if (look < 0) { g.save(); g.translate(hc[0], 0); g.scale(-1, 1); g.translate(-hc[0], 0); head(); g.restore(); } else head();
     drawArm(AF, o.sleeve || tun, aF);
@@ -1067,6 +1222,41 @@ function beast(g, cx, by, type, f, s, cols) {
     g.fill(taper([[-30, -44], [-36, -22], [-33, 0]], 8, 5), c1, { ow: 1.1 }); g.fill(taper([[26, -44], [30, -22], [29, 0]], 8, 5), c1, { ow: 1.1 });
     g.fill(circ(38, -66, 18, 16), c2, { ow: 1.3, ang: 1 });
     g.fill(circ(42, -66, 12, 14), c1, { ow: 1.3 }); g.dot(46, -69, 1.6, PAL.ink); g.stem([[48, -60], [54, -61]], PAL.ink, 1.2);
+  } else if (type === 'griffin') {
+    g.fill(taper(smooth([[-34, -52], [-52, -66], [-54, -88], [-40, -98]], false, 4), 5, 3), c1, { ow: 1.1 });
+    leaf(g, [-40, -98], 0.4, 14, 6, c2);
+    g.fill(taper([[-24, -44], [-28, -22], [-25, 0]], 8, 5), c2, { ow: 1.1 }); g.fill(taper([[18, -44], [16, -22], [18, 0]], 8, 5), c2, { ow: 1.1 });
+    g.fill(smooth([[-16, -58], [-38, -104], [-16, -94], [0, -114], [12, -66]], true, 2), c2, { ow: 1.3, ang: -1.2 });
+    g.fill(ell(0, -50, 34, 14, 22), c1, { ow: 1.5, ang: 0 });
+    g.fill(taper([[-30, -44], [-34, -22], [-31, 0]], 8, 5), c1, { ow: 1.1 }); g.fill(taper([[24, -44], [28, -22], [27, 0]], 8, 5), c1, { ow: 1.1 });
+    g.fill(taper(smooth([[22, -58], [32, -76], [34, -88]], false, 3), 12, 9), c1, { ow: 1.2 });
+    g.fill([[30, -99], [28, -111], [36, -100]], c1, { ow: 1 });
+    g.fill(circ(36, -91, 10, 14), c1, { ow: 1.3 }); g.fill([[44, -96], [57, -90], [44, -86]], c3, { ow: 1 }); g.dot(38, -94, 1.6, PAL.ink);
+  } else if (type === 'stag') {
+    g.fill(taper([[-22, -46], [-24, -20], [-22, 0]], 6, 4), c2, { ow: 1 }); g.fill(taper([[20, -46], [22, -20], [24, 0]], 6, 4), c2, { ow: 1 });
+    g.fill([[-30, -60], [-40, -66], [-33, -52]], c2, { ow: 1 });
+    g.fill(ell(0, -52, 32, 13, 22), c1, { ow: 1.5, ang: 0 });
+    g.fill(taper([[-28, -46], [-30, -20], [-29, 0]], 6, 4), c1, { ow: 1 }); g.fill(taper([[26, -46], [28, -20], [30, 0]], 6, 4), c1, { ow: 1 });
+    g.fill(taper(smooth([[22, -58], [30, -78], [32, -90]], false, 3), 11, 8), c1, { ow: 1.2 });
+    g.fill(ell(38, -92, 11, 6, 14, 0.35), c1, { ow: 1.2 }); g.fill([[30, -97], [24, -104], [33, -100]], c1, { ow: 0.9 }); g.dot(39, -94, 1.5, PAL.ink);
+    g.stem([[32, -98], [28, -112], [21, -123]], c3, 2.4); g.stem([[29, -109], [36, -119]], c3, 1.9); g.stem([[25, -117], [17, -119]], c3, 1.7);
+    g.stem([[36, -98], [41, -112], [47, -122]], c3, 2.2); g.stem([[40, -109], [49, -111]], c3, 1.7);
+  } else if (type === 'peacock') {
+    g.fill(smooth([[-8, -46], [-44, -28], [-62, -56], [-56, -96], [-30, -112], [-6, -70]], true, 3), c2, { ow: 1.3, ang: -0.6 });
+    for (const [ex, ey] of [[-42, -96], [-55, -72], [-46, -46], [-26, -92], [-34, -68]]) { g.fill(circ(ex, ey, 4.6, 10), c3, { ow: 0.9 }); g.dot(ex, ey, 1.5, PAL.indigo); }
+    g.stem([[-2, -34], [-4, 0], [-12, 0]], PAL.ink, 1.8); g.stem([[8, -34], [10, 0], [2, 0]], PAL.ink, 1.8);
+    g.fill(ell(0, -46, 22, 13, 20, 0.3), c1, { ow: 1.4 });
+    g.fill(taper(smooth([[14, -52], [22, -78], [20, -92]], false, 3), 9, 6), c1, { ow: 1.2 });
+    g.fill(circ(22, -96, 7, 12), c1, { ow: 1.2 }); g.fill([[28, -98], [37, -95], [28, -93]], c3, { ow: 0.9 }); g.dot(24, -97, 1.3, PAL.ink);
+    for (const dx of [-3, 0, 3]) { g.stem([[22 + dx * 0.4, -103], [22 + dx, -112]], PAL.ink, 1); g.dot(22 + dx, -113, 1.4, c3); }
+  } else if (type === 'hound') {
+    g.fill(taper([[-26, -42], [-42, -30], [-58, -24]], 7, 4), c2, { ow: 1 }); g.fill(taper([[22, -44], [38, -30], [52, -34]], 7, 4), c2, { ow: 1 });
+    g.fill(taper(smooth([[-32, -48], [-46, -60], [-60, -58]], false, 3), 5, 2), c1, { ow: 1 });
+    g.fill(ell(0, -46, 34, 9, 20, -0.08), c1, { ow: 1.4, ang: 0 });
+    g.fill(taper([[-22, -42], [-30, -20], [-46, -12]], 7, 4), c1, { ow: 1 }); g.fill(taper([[26, -44], [34, -24], [50, -16]], 7, 4), c1, { ow: 1 });
+    g.fill(taper([[28, -50], [38, -60]], 12, 10), c1, { ow: 1.1 });
+    g.fill(ell(42, -62, 10, 6, 14, 0.2), c1, { ow: 1.2 }); g.fill([[47, -66], [61, -59], [47, -56]], c1, { ow: 1 });
+    g.fill([[38, -66], [29, -75], [36, -60]], c2, { ow: 0.9 }); g.stem([[33, -63], [36, -53]], c3, 2.6); g.dot(44, -64, 1.4, PAL.ink);
   } else {
     g.fill(taper(smooth([[-20, -44], [-46, -42], [-62, -24], [-52, -8], [-38, -16]], false, 4), 10, 3), c1, { ow: 1.2 });
     g.fill(smooth([[-6, -56], [-26, -112], [-6, -98], [12, -116], [20, -62]], true, 2), c2, { ow: 1.3, ang: -1.3 });
@@ -2619,7 +2809,7 @@ function bigStrawberry(g, cx, by, s) {
 }
 function handPic(g, cx, cy, s, n, col = PAL.buff) {
   g.fill(taper([[cx - 3 * s, cy + 34 * s], [cx - 1 * s, cy + 10 * s]], 16 * s, 20 * s), PAL.terra, { ow: 1.2 });
-  for (let i = 0; i < n; i++) { const a = -Math.PI / 2 + (i - (n - 1) / 2) * 0.3; g.fill(capsule([cx + Math.cos(a) * 12 * s, cy + Math.sin(a) * 10 * s], [cx + Math.cos(a) * 34 * s, cy + Math.sin(a) * 32 * s], 7.5 * s), col, { ow: 1.2, out: PAL.rust }); }
+  for (let i = 0; i < n; i++) { const a = -Math.PI / 2 + 0.12 + (i - (n - 1) / 2) * 0.4; g.fill(capsule([cx + Math.cos(a) * 12 * s, cy + Math.sin(a) * 10 * s], [cx + Math.cos(a) * 36 * s, cy + Math.sin(a) * 34 * s], 6.6 * s), col, { ow: 1.2, out: PAL.rust }); }
   g.fill(capsule([cx - 12 * s, cy + 6 * s], [cx - 32 * s, cy - 4 * s], 8 * s), col, { ow: 1.2, out: PAL.rust });
   g.fill(ell(cx, cy, 16 * s, 13 * s, 18), col, { ow: 1.4, out: PAL.rust, ang: 0.4 });
 }
@@ -2884,11 +3074,11 @@ const COUNCIL = {
     easel(g, 520, 70, 140, (x, y, w, h) => miniLandscape(g, x, y, w, h, 1));
     g.stem([[640, G], [640, G - 250]], PAL.rust, 3.4); g.stem([[910, G], [910, G - 250]], PAL.rust, 3.4);
     g.stem([[632, G - 250], [918, G - 250]], PAL.rust, 3); g.stem([[632, G - 160], [918, G - 160]], PAL.rust, 3);
-    for (let r = 0; r < 2; r++) for (let c = 0; c < 3; c++) frame(g, 652 + c * 86, G - 244 + r * 90, 72, 74, (x, y, w, h) => (r === 0 && c === 2) ? handPic(g, x + w / 2, y + h * 0.55, 0.62, 7) : (r + c) % 2 ? miniFace(g, x, y, w, h, c + r) : miniLandscape(g, x, y, w, h, c + r), [PAL.ochre, PAL.terra, PAL.teal][(c + r) % 3]);
+    for (let r = 0; r < 2; r++) for (let c = 0; c < 3; c++) frame(g, 652 + c * 86, G - 244 + r * 90, 72, 74, (x, y, w, h) => (r === 0 && c === 2) ? handPic(g, x + w / 2, y + h * 0.55, 0.62, 5) : (r + c) % 2 ? miniFace(g, x, y, w, h, c + r) : miniLandscape(g, x, y, w, h, c + r), [PAL.ochre, PAL.terra, PAL.teal][(c + r) % 3]);
     for (let i = 0; i < 3; i++) frame(g, 660 + i * 70, G - 60 + i * 4, 56, 56 - i * 4, (x, y, w, h) => miniLandscape(g, x, y, w, h, i + 2), PAL.ochre);
     g.stem([[1024, G - 120], [1024, G]], PAL.rust, 3); g.stem([[980, G], [1024, G - 120], [1068, G]], PAL.rust, 2.6);
     g.fill(rect(964, G - 268, 120, 150), PAL.ochre, { ang: 0, ow: 1.5 }); g.bare(rect(972, G - 260, 104, 134), { ow: 1.1 });
-    handPic(g, 1024, G - 186, 1.0, 6);
+    handPic(g, 1024, G - 186, 1.0, 5);
     stitchText(g, '6', 1062, G - 134, 13, { align: 'center', col: PAL.terra });
     person(g, 1180, P(5, { f: -1, armF: [150, 0], armB: [100, 40], mouth: true }));
     person(g, 1290, P(7, { f: -1, armF: [40, 120], armB: DOWN, gown: true }));
@@ -3322,6 +3512,59 @@ const LATER = [
   SCENES.splice(fin < 0 ? SCENES.length : fin, 0, ...LATER);
 })();
 
+/* ===== the cast: the people who recur along the cloth wear the same colours and carry the same signs every time,
+   the way a medieval viewer knew a saint by his keys. Faces stay Bayeux faces; nobody is a portrait. ===== */
+function chessKnight(g, x, y, s = 1) {
+  g.save(); g.translate(x, y); g.scale(s, s);
+  g.fill([[-7, 0], [7, 0], [6, -4], [-6, -4]], PAL.ink, { ow: 0.9, ang: 0 });
+  g.fill(smooth([[-5, -4], [5, -4], [4, -12], [7, -15], [6, -20], [1, -25], [-3, -24], [-6, -19], [-4, -14]], true, 3), PAL.ink, { ow: 1, ang: 1.3, out: PAL.buff });
+  g.dot(2.5, -19, 1, PAL.linen);
+  g.restore();
+}
+const CAST = {
+  sam: { label: 'Sam Altman', o: { tunic: '#8b8f8a', sleeve: '#8b8f8a', leg: PAL.indigo, hem: PAL.ochre, hair: '#4b3527', castHair: 'crop', clean: true, shaven: true }, s: 0.96 },
+  elon: { label: 'Elon Musk', o: { tunic: PAL.indigo, leg: PAL.ink, hem: PAL.terra, hair: '#3b2b22', castHair: 'crop', clean: true, shaven: true, badge: 'rocket' }, s: 1.07 },
+  ilya: { label: 'Ilya Sutskever', o: { tunic: PAL.teal, leg: PAL.rust, hem: PAL.buff, hair: '#2e2622', castHair: 'fringe', bald: false, clean: true, shaven: true } },
+  hinton: { label: 'Geoffrey Hinton', o: { tunic: PAL.sage, leg: PAL.rust, hem: PAL.ochre, hair: '#e6e0d2', castHair: 'crop', clean: true, shaven: true }, s: 1.05 },
+  trump: { label: 'Donald Trump', o: { hair: '#e0b04e', castHair: 'swept', tie: '#b33a2a', clean: true, shaven: true } },
+  satya: { label: 'Satya Nadella', o: { castHair: 'shaved', hair: '#4a4540', glasses: true, beardC: '#7a746c', clean: true } },
+  demis: { label: 'Demis Hassabis', o: { hair: '#2b2420', castHair: 'crop', clean: true, holding: true }, after: (g, p) => chessKnight(g, p.hf[0] + 1, p.hf[1] - 3, 0.9) },
+  jensen: { label: 'Jensen Huang', o: { tunic: '#45403c', sleeve: '#45403c', leg: PAL.ink, hem: '#6e675f', jacket: '#b3aa9c', hair: '#3a3632', castHair: 'crop', clean: true, shaven: true } }
+};
+/* for new scenes: castAs('sam', { f: -1, armF: POINT }) gives the options; cast(g, 'sam', x, {...}) draws the figure */
+function castAs(name, extra = {}) { const c = CAST[name], o = Object.assign({}, extra, c.o); if (c.s) o.s = (extra.s || 1) * c.s; return o; }
+let CASTING = null;
+const personPlain = person;
+person = function (g, x, o = {}) {
+  const name = CASTING && CASTING[x];
+  if (!name) return personPlain(g, x, o);
+  const p = personPlain(g, x, castAs(name, o));
+  if (CAST[name].after) CAST[name].after(g, p);
+  return p;
+};
+function cast(g, name, x, o = {}) { const keep = CASTING; CASTING = { [x]: name }; try { return person(g, x, o); } finally { CASTING = keep; } }
+(function casting() {
+  const ROLES = {
+    'WHERE THEY SWORE': { 240: 'elon', 592: 'sam', 850: 'ilya' },
+    'HERE THE FATHER OF THE NETWORKS': { 500: 'hinton' },
+    'HERE THE COUNCIL CASTS OUT': { 570: 'ilya', 840: 'sam' },
+    'WHERE THE EMPEROR OF THE WEST': { 350: 'sam', 700: 'satya' },
+    'AND THE HOUSEHOLD WRITES': { 930: 'ilya' },
+    'AND AFTER FIVE DAYS': { 310: 'sam' },
+    'HERE THE SAGE LEAVES': { 590: 'ilya' },
+    'HERE GOLD IS GIVEN': { 900: 'jensen' },
+    'HERE THE NOBEL PRIZES': { 530: 'hinton', 770: 'demis' },
+    'HERE THE NEW KING': { 335: 'trump' },
+    'WHERE EVERYONE WANTS': { 1260: 'sam' },
+    'WHERE THE OLD LORD ACCUSES': { 210: 'elon', 1200: 'sam' }
+  };
+  for (const [pre, roles] of Object.entries(ROLES)) {
+    const sc = SCENES.find(s => s.lat.startsWith(pre)); if (!sc) throw new Error('cast: missing ' + pre);
+    const d = sc.draw;
+    sc.draw = function (g) { const keep = CASTING; CASTING = roles; try { d.call(this, g); } finally { CASTING = keep; } };
+  }
+})();
+
 /* ===== who's who: what each figure stands for, shown on hover or tap, never stitched ===== */
 (function whoIsWho() {
   const p = (x, s = 1, y = G) => [x - 30 * s, y - 195 * s, x + 30 * s, y];
@@ -3331,7 +3574,7 @@ const LATER = [
   const ms = (x, s = 1) => [x - 38 * s, G - 176 * s, x + 46 * s, G];
   const r = (x0, y0, x1, y1) => [x0, y0, x1, y1];
   const WHO = {
-    'WHERE THEY SWORE': [['Elon Musk, co-founder and early funder of OpenAI', ps(240)], ['Sam Altman, co-founder, swearing on the mission', p(592)], ['Other co-founders, among them Greg Brockman and Ilya Sutskever', p(850)], ['The founding mission: AI that “benefits all of humanity”', p(1020)]],
+    'WHERE THEY SWORE': [['Elon Musk, co-founder and early funder of OpenAI', ps(240)], ['Sam Altman, co-founder, swearing on the mission', p(592)], ['Ilya Sutskever, co-founder and chief scientist', p(850)], ['The founding mission: AI that “benefits all of humanity”', p(1020)]],
     'THESE MEN CARRY BOOKS': [['Books, encyclopedias, forums and code: the training data', r(110, G - 220, 740, G)], ['A language model in training', ms(1102, 0.92)]],
     'HERE THE MACHINE PAINTS': [['DALL·E (OpenAI, January 2021)', m(370, 0.95)], ['“an armchair in the shape of an avocado”', r(670, G - 230, 850, G)], ['“a baby daikon radish in a tutu walking a dog”', r(1090, G - 170, 1330, G)]],
     'AND THE MACHINE WRITES CODE': [['A programmer', ps(260)], ['GitHub Copilot, built on OpenAI Codex', m(540)], ['A programmer watching his code write itself', ps(650)]],
@@ -3345,22 +3588,22 @@ const LATER = [
     'AND THE WISE ASK FOR A SIX-MONTH': [['Signatories of the pause letter (Future of Life Institute)', r(110, G - 210, 540, G)], ['The labs, building on', r(700, G - 300, 1200, G)]],
     'HERE THE FATHER OF THE NETWORKS': [['Google', r(60, G - 290, 410, G)], ['Geoffrey Hinton, leaving Google to warn', p(500)], ['Signatories of the extinction-risk statement (Center for AI Safety)', r(800, G - 210, 1380, G)]],
     'HERE THE WRITERS AND PLAYERS': [['Writers Guild and SAG-AFTRA members on strike', r(110, G - 300, 640, G)], ['Generative AI in film and television', m(900, 1.15)]],
-    'HERE THE COUNCIL CASTS OUT': [['OpenAI’s board, including Ilya Sutskever', r(110, G - 300, 530, G)], ['Sam Altman, removed as chief executive', p(840, 0.82, G + 20)]],
-    'WHERE THE EMPEROR OF THE WEST': [['Sam Altman', p(350, 0.82, G + 20)], ['Microsoft (Satya Nadella)', p(700)]],
+    'HERE THE COUNCIL CASTS OUT': [['OpenAI’s board', r(110, G - 300, 530, G)], ['Ilya Sutskever, on the board', p(570)], ['Sam Altman, removed as chief executive', p(840, 0.82, G + 20)]],
+    'WHERE THE EMPEROR OF THE WEST': [['Sam Altman', p(350, 0.82, G + 20)], ['Satya Nadella, Microsoft', p(700)]],
     'AND THE HOUSEHOLD WRITES': [['More than 700 OpenAI employees', r(110, G - 230, 760, G)], ['Ilya Sutskever: “I deeply regret my participation in the board’s actions”', pk(930)], ['The board’s empty seats', r(1030, G - 300, 1370, G)]],
     'AND AFTER FIVE DAYS': [['Sam Altman, reinstated', p(310, 0.82, G + 20)], ['OpenAI staff', r(580, G - 230, 1040, G)]],
     'AND RIVAL HOUSES': [['Meta: LLaMA', r(120, G - 270, 320, G)], ['Anthropic: Claude', r(390, G - 270, 590, G)], ['Google: Bard', r(660, G - 270, 860, G)], ['Mistral AI', r(930, G - 270, 1130, G)], ['Google DeepMind: Gemini', r(1200, G - 270, 1400, G)]],
     'WHERE THE MACHINE WEAVES': [['Sora (OpenAI), then Veo (Google) and others', m(230, 1.15)], ['Muybridge’s galloping horse, the first motion study', r(380, 200, 1260, 300)]],
     'HERE THE SAGE LEAVES': [['OpenAI', r(40, G - 290, 360, G)], ['Ilya Sutskever, leaving OpenAI', p(590)], ['Safe Superintelligence Inc., founded June 2024', r(1030, G - 340, 1130, G)]],
-    'HERE GOLD IS GIVEN': [['Investors and buyers', r(110, G - 220, 500, G)], ['Nvidia', p(900)], ['Data-centre GPUs', r(1030, G - 140, 1260, G)]],
+    'HERE GOLD IS GIVEN': [['Investors and buyers', r(110, G - 220, 500, G)], ['Jensen Huang, Nvidia', p(900)], ['Data-centre GPUs', r(1030, G - 140, 1260, G)]],
     'HERE THE MACHINE CANNOT COUNT': [['How many Rs in “strawberry”?', p(220)], ['A chatbot answering “two”', m(760, 1.32)]],
     'HERE THE MACHINE THINKS': [['OpenAI o1, code-named Strawberry', ms(255, 1.38)], ['The chain of thought', r(300, 220, 1000, 290)]],
     'WHERE THE ATOMIC TOWERS': [['Three Mile Island Unit 1, to be restarted to power Microsoft', r(140, G - 300, 450, G)], ['Data centres', r(820, G - 240, 1260, G)]],
-    'HERE THE NOBEL PRIZES': [['John Hopfield, Physics 2024', p(420, 0.95)], ['Geoffrey Hinton, Physics 2024', p(530, 0.95)], ['David Baker, Chemistry 2024', p(640, 0.95)], ['Demis Hassabis, Chemistry 2024', p(770, 0.95)], ['John Jumper, Chemistry 2024', pk(890)], ['The King of Sweden presents the prizes', ps(1050)]],
+    'HERE THE NOBEL PRIZES': [['John Hopfield, Physics 2024', p(420, 0.95)], ['Geoffrey Hinton, Physics 2024', p(530, 0.95)], ['David Baker, Chemistry 2024', p(640, 0.95)], ['Demis Hassabis, Chemistry 2024, once a chess prodigy', p(770, 0.95)], ['John Jumper, Chemistry 2024', pk(890)], ['The King of Sweden presents the prizes', ps(1050)]],
     'HERE THE NEW KING': [['Donald Trump', ps(335)], ['The AI Action Plan: win the race', p(900)], ['State AI laws, targeted by a December 2025 order', p(1150)]],
     'HERE THEY ORDERED THE STAR GATE': [['Stargate: OpenAI, SoftBank and Oracle, up to $500 billion', r(900, G - 340, 1260, G)]],
     'WHERE A SMALL SHIP': [['DeepSeek R1, open weights from China', r(190, G - 270, 460, G)], ['Nvidia: about $590 billion of market value lost in a day', r(680, G - 210, 980, G)]],
-    'WHERE EVERYONE WANTS': [['GPT-4o image generation', m(650, 1.48)], ['“our GPUs are melting” (Sam Altman)', r(890, G - 270, 1140, G)]],
+    'WHERE EVERYONE WANTS': [['GPT-4o image generation', m(650, 1.48)], ['The GPUs, melting', r(890, G - 270, 1140, G)], ['Sam Altman: “our GPUs are melting”', p(1260)]],
     'HERE THE MACHINE WORKS ALONE': [['Coding agents: Claude Code, Codex, Cursor', m(400, 1.6)], ['The developer, asleep', r(930, G - 220, 1310, G)]],
     'AND NEW KINGS ARE CROWNED': [['xAI: Grok 4', m(200, 1.04)], ['Moonshot and Alibaba: Kimi and Qwen', m(450, 1.12)], ['OpenAI: GPT-5', m(700, 1.2)], ['Google: Gemini 3', m(950, 1.28)], ['Anthropic: Claude Opus 4.5', m(1200, 1.36)]],
     'WHERE THE VILLAGERS': [['Communities opposing new data centres', r(110, G - 260, 570, G)], ['A data centre', r(630, G - 260, 1330, G)]],
@@ -3380,6 +3623,260 @@ const LATER = [
     const own = Array.isArray(sc.who) ? sc.who : [];
     sc.who = (key ? WHO[key] : own).map(e => Array.isArray(e) ? { label: e[0], b: e[1] } : e);
   });
+})();
+
+const RALGO_LOGO = {"vb":[-7.0,5.0,127.75,65.0],"paths":[{"c":"k","s":[{"h":0,"p":[74.2,51.5,74.0,55.2,73.2,56.2,71.7,56.8,47.7,57.2,7.8,58.7,29.7,59.2,72.0,59.1,73.6,58.7,75.0,57.8,76.4,55.5,76.5,51.5]},{"h":0,"p":[75.3,51.5,75.3,54.7,74.9,55.8,73.5,57.0,71.8,57.5,47.9,57.9,-3.0,59.6,21.4,60.1,72.0,59.9,73.7,59.6,75.6,58.5,77.4,56.0,77.7,51.5]},{"h":0,"p":[76.5,51.5,76.5,54.7,76.0,56.1,74.5,57.5,72.7,58.2,58.7,58.8,34.5,60.8,23.2,61.3,37.3,61.6,73.1,60.5,76.6,58.9,78.4,56.5,78.8,54.9,78.8,51.5]},{"h":0,"p":[77.6,51.5,77.6,55.0,76.8,56.7,75.0,58.3,72.3,59.1,52.3,59.6,16.1,61.8,-0.4,62.3,19.3,62.7,73.1,61.4,77.0,59.8,78.5,58.5,79.5,56.8,80.0,54.9,80.0,51.5]}]},{"c":"o","s":[{"h":0,"p":[73.0,51.5,72.9,54.9,72.3,55.7,71.4,56.0,31.1,56.3,-3.1,57.0,36.6,58.0,71.4,58.4,73.8,57.6,74.9,56.2,75.3,55.0,75.4,51.5]}]},{"c":"k","s":[{"h":0,"p":[73.0,51.5,73.0,54.7,72.3,55.7,65.6,57.9,62.8,58.4,71.4,58.4,73.8,57.6,75.2,55.7,75.4,51.5]},{"h":0,"p":[74.2,51.5,74.1,54.9,72.9,56.4,63.9,58.0,69.6,59.1,72.0,59.1,74.1,58.5,76.0,56.5,76.5,54.4,76.5,51.5]},{"h":0,"p":[75.3,51.5,75.2,55.0,73.8,56.9,72.2,57.5,68.4,57.6,63.2,58.8,69.0,59.9,72.6,59.9,74.7,59.1,76.7,57.4,77.7,55.0,77.7,51.5]},{"h":0,"p":[76.5,51.5,76.3,55.3,75.6,56.6,74.5,57.5,72.3,58.3,67.3,58.4,62.4,59.7,67.3,60.7,71.4,60.7,73.7,60.4,75.7,59.6,78.0,57.4,78.8,54.9,78.8,51.5]},{"h":0,"p":[77.6,51.5,77.3,55.9,76.4,57.2,75.0,58.2,72.7,59.0,66.7,59.2,61.0,60.4,67.3,61.5,72.5,61.4,76.1,60.4,78.8,58.1,79.9,55.4,80.0,51.5]}]},{"c":"k","s":[{"h":0,"p":[50.0,7.7,48.7,6.3,46.7,6.1,45.2,6.9,44.3,8.7,43.1,49.8,43.8,51.3,45.2,52.0,47.8,51.6,49.0,49.8,50.3,9.0]},{"h":0,"p":[38.5,21.9,39.4,21.4,40.0,20.2,39.6,18.9,38.6,18.1,17.9,16.5,6.3,16.8,3.0,18.5,0.8,21.4,0.0,25.0,0.0,49.5,0.7,51.3,2.5,52.0,5.5,51.8,6.9,50.1,7.0,25.8,7.6,24.1,8.8,22.8,11.2,22.0]},{"h":0,"p":[12.7,45.5,14.0,47.4,16.5,49.6,19.6,51.2,21.7,51.8,43.0,52.0,39.9,50.2,38.8,48.8,38.2,47.3,38.0,32.7,37.2,30.0,35.7,27.7,34.0,26.5,31.4,25.5,24.0,25.4,19.6,26.2,15.6,28.4,12.7,31.9,11.2,36.1,11.2,41.3]},{"h":1,"p":[27.2,31.5,29.6,33.7,30.7,36.0,31.0,40.7,30.3,43.2,28.8,45.3,26.1,47.0,22.8,47.5,19.8,46.5,17.4,44.3,16.3,42.0,16.0,37.3,16.7,34.8,18.2,32.7,20.9,30.9,24.2,30.5]},{"h":0,"p":[79.2,30.0,77.1,27.3,74.1,25.7,72.0,25.4,63.7,25.6,60.5,26.6,57.6,28.4,55.4,30.9,53.8,34.0,53.0,38.4,53.4,42.4,55.4,46.5,58.5,49.6,61.5,51.2,64.9,52.0,80.0,52.0,80.0,33.4]},{"h":1,"p":[59.0,34.2,61.2,31.9,64.2,30.6,66.8,30.6,69.8,31.9,71.7,33.7,72.9,36.7,72.9,41.3,72.0,43.8,69.8,46.1,66.8,47.4,64.2,47.4,61.2,46.1,59.4,44.3,58.1,41.3,58.1,36.7]},{"h":0,"p":[103.7,50.0,105.8,47.7,106.9,45.9,108.0,41.9,107.8,35.1,106.9,32.1,105.8,30.3,102.9,27.4,101.1,26.3,98.1,25.4,96.0,25.2,92.9,25.6,90.9,26.3,88.3,28.0,86.2,30.3,85.1,32.1,84.0,36.1,84.2,42.9,85.1,45.9,86.2,47.7,89.1,50.6,90.9,51.7,93.9,52.6,96.0,52.8,99.1,52.4,101.1,51.7]},{"h":1,"p":[90.5,33.6,92.6,31.6,95.4,30.8,98.3,31.2,100.8,32.7,102.1,34.6,102.7,36.9,102.7,41.7,101.5,44.4,99.4,46.4,96.6,47.2,93.7,46.8,91.2,45.3,89.9,43.4,89.3,41.1,89.3,36.3]},{"h":0,"p":[117.7,48.8,117.4,47.5,116.6,46.4,115.4,45.7,114.0,45.5,112.7,45.9,111.6,46.7,110.9,47.9,110.8,49.2,111.1,50.5,111.9,51.6,113.1,52.3,114.5,52.5,115.8,52.1,116.9,51.3,117.6,50.1]}]}]};
+
+/* ===== marginalia: the borders fill up as the story runs on. Centaurs, microducks and small robots join the old bestiary,
+   more of them the later the cloth, and a few small references sit in the margins without needing scenes of their own ===== */
+const MARGIN_BEASTS = {
+  centaur(g, [c1, c2, c3]) {
+    g.fill(taper(smooth([[-34, -54], [-50, -50], [-58, -28]], false, 3), 8, 3), c3, { ow: 1 });
+    g.fill(taper([[-24, -44], [-28, -22], [-26, 0]], 8, 5), c2, { ow: 1 }); g.fill(taper([[14, -44], [18, -22], [20, 0]], 8, 5), c2, { ow: 1 });
+    g.fill(ell(-4, -50, 34, 14, 22), c1, { ow: 1.4, ang: 0 });
+    g.fill(taper([[-30, -44], [-34, -22], [-32, 0]], 8, 5), c1, { ow: 1 }); g.fill(taper([[20, -44], [24, -22], [28, 0]], 8, 5), c1, { ow: 1 });
+    g.fill(smooth([[14, -60], [30, -60], [32, -92], [22, -98], [13, -90]], true, 2), c2, { ow: 1.2, ang: Math.PI / 2 });
+    g.fill(taper([[27, -88], [44, -84]], 7, 6), c2, { ow: 1 });
+    g.stem(arc(46, -84, 7, 18, -1.35, 1.35, 8), PAL.rust, 2.2); g.stem([[48, -101], [48, -67]], PAL.ink, 0.8); g.stem([[26, -84], [60, -84]], PAL.ink, 1.1);
+    g.bare(PROFILE.map(([u, v]) => [24 + u * 0.72, -106 + v * 0.72]), { ow: 1.1 });
+    g.fill(arc(24, -106, 9.6, 9.6, 155 * D, 322 * D, 10).concat([[26, -111], [20, -104]]), c3, { ow: 1, ang: 0.8 });
+    g.dot(28, -108, 1.1, PAL.ink);
+  },
+  mcentaur(g, [c1, c2, c3]) {
+    g.fill(taper(smooth([[-34, -54], [-50, -50], [-58, -28]], false, 3), 8, 3), c3, { ow: 1 });
+    g.fill(taper([[-24, -44], [-28, -22], [-26, 0]], 8, 5), c2, { ow: 1 }); g.fill(taper([[14, -44], [18, -22], [20, 0]], 8, 5), c2, { ow: 1 });
+    g.fill(ell(-4, -50, 34, 14, 22), c1, { ow: 1.4, ang: 0 });
+    g.fill(taper([[-30, -44], [-34, -22], [-32, 0]], 8, 5), c1, { ow: 1 }); g.fill(taper([[20, -44], [24, -22], [28, 0]], 8, 5), c1, { ow: 1 });
+    g.fill(rect(13, -98, 20, 40), PAL.indigo, { ow: 1.2, ang: Math.PI / 2 });
+    g.stem([[17, -88], [23, -82], [29, -88]], PAL.ochre, 1); g.stem([[23, -82], [23, -70]], PAL.ochre, 1); g.dot(23, -78, 1.4, PAL.terra);
+    g.fill(taper([[31, -92], [50, -96]], 7, 6), PAL.teal, { ow: 1 }); g.fill(circ(51, -96, 3.6, 8), PAL.indigo, { ow: 0.9 });
+    g.fill(rect(15, -116, 16, 15), PAL.indigo, { ow: 1.2, ang: 0 }); g.fill(circ(26, -109, 2.6, 8), PAL.terra, { ow: 0.8 });
+    g.stem([[23, -116], [23, -124]], PAL.ink, 1); g.dot(23, -125, 1.6, PAL.ochre);
+  },
+  /* Hugging Face's Microduck (August 2026): a ten-inch open-source walking duck robot with a grasping beak, in cream, graphite, lavender or sky */
+  microduck(g, cols, o = {}) {
+    const C = ['#e9e1cf', '#a99cc4', '#9cbfd8', '#66666b'], col = o.col || C[hstr(cols.join('')) % 4], dk = '#4a4a50';
+    const off = (o.phase || 0), sw = Math.sin(aph(off)), skate = o.skate;
+    g.save(); g.scale(1.3, 1.3);
+    for (const k of [0, 1]) {
+      const ph = skate ? 0 : (k ? -sw : sw), hip = [-2 + k * 4, -30], knee = [5 + k * 4 + ph * 4, -15], foot = [-1 + k * 5 + ph * 7, skate ? -5 : -1];
+      g.stem([hip, knee, foot], k ? dk : mixHex(dk, 0.25), 2.6);
+      g.fill([[foot[0] - 3, foot[1] + 1], [foot[0] + 9, foot[1] + 1], [foot[0] + 7, foot[1] - 2], [foot[0] - 2, foot[1] - 2]], PAL.ochre, { ow: 0.8 });
+      if (skate) for (const wx of [foot[0] - 1, foot[0] + 6]) g.fill(circ(wx, 1.6, 2.2, 8), dk, { ow: 0.6 });
+    }
+    g.fill([[-20, -44], [-31, -54], [-24, -38]], col, { ow: 1 });
+    g.fill(ell(-2, -40, 21, 15, 20, -0.08 + (skate ? 0 : sw * 0.04)), col, { ow: 1.3, ang: 0 });
+    g.stem(arc(-2, -40, 13, 9, 2.6, 4.2, 6), mixHex(col, -0.35), 1); g.fill(rect(-8, -42, 9, 6), dk, { ow: 0.7, ang: 0 });
+    g.fill(rect(10, -60, 7, 14), dk, { ow: 0.9, ang: Math.PI / 2 });
+    g.fill(ell(15, -64, 10, 9, 16), col, { ow: 1.2, ang: 0 });
+    g.fill(rect(10, -76, 8, 4), dk, { ow: 0.7, ang: 0 });
+    g.fill(circ(17, -66, 3, 10), dk, { ow: 0.7 }); g.dot(17.6, -66.4, 0.9, PAL.blue);
+    const op = o.carry ? 0.18 : 0.06 + Math.max(0, Math.sin(aph(off, 2))) * 0.1;
+    g.fill([[23, -66], [36, -65 - op * 20], [36, -62], [23, -61]], PAL.ochre, { ow: 0.9 }); g.fill([[23, -61], [35, -58 + op * 14], [34, -55], [23, -58]], mixHex(PAL.ochre, -0.15), { ow: 0.9 });
+    if (o.carry) g.fill(rect(30, -64, 8, 7), PAL.terra, { ow: 0.8, ang: 0 });
+    g.restore();
+  },
+  robot(g, [c1, c2, c3]) { machine(g, 0, { y: 0.001, s: 0.5, pose: 'walk', armF: [40, 20], armB: [-30, 10], body: c1 === PAL.ochre ? PAL.indigo : c1, limb: c2, trim: PAL.ochre }); },
+  robodog(g) {
+    for (const [hx, kx, fx, near] of [[-20, -28, -18, 0], [24, 16, 26, 0], [-26, -34, -24, 1], [18, 10, 20, 1]]) {
+      const c = near ? PAL.ochre : mixHex(PAL.ochre, -0.25);
+      g.fill(taper([[hx, -40], [kx, -22]], 7, 6), c, { ow: 1 }); g.stem([[kx, -22], [fx, 0]], near ? PAL.ink : mixHex(PAL.ink, 0.2), 2.8);
+    }
+    g.fill(smooth([[-34, -50], [24, -54], [32, -46], [26, -36], [-30, -36], [-38, -42]], true, 2), PAL.ochre, { ow: 1.3, ang: 0 });
+    g.stem([[-30, -44], [24, -46]], PAL.ink, 1.4);
+    g.fill([[28, -54], [48, -60], [51, -47], [31, -41]], PAL.ink, { ow: 1, out: PAL.ochre, ang: 0 }); g.dot(45, -53, 1.4, PAL.terra);
+    g.stem([[-6, -53], [4, -68], [20, -64]], PAL.ink, 2.2); g.stem([[20, -64], [26, -60]], PAL.ink, 1.4); g.stem([[20, -64], [26, -68]], PAL.ink, 1.4);
+  }
+};
+const beastPlain = beast;
+beast = function (g, cx, by, type, f, s, cols) {
+  const draw = MARGIN_BEASTS[type];
+  if (!draw) return beastPlain(g, cx, by, type, f, s, cols);
+  g.save(); g.translate(cx, by); g.scale(s * f, s); draw(g, cols); g.restore();
+};
+/* which beast a bay holds: the old bestiary early on; centaurs and robots take over the margins as the story nears the present */
+function pickBeast(r, u) {
+  const W = [['bird', 3], ['lion', 2.4], ['wyvern', 2], ['griffin', 1.4], ['stag', 1.4], ['peacock', 1.1], ['hound', 1.1], ['microduck', u > 0.84 ? 1.4 * (u - 0.84) / 0.16 : 0],
+    ['centaur', 0.15 + 2.6 * u * u], ['mcentaur', u > 0.55 ? 2.6 * (u - 0.55) : 0], ['robot', 0.12 + 2.6 * u * u], ['robodog', 0.9 * u * u]];
+  let t = W.reduce((a, w) => a + w[1], 0) * r;
+  for (const [name, w] of W) { if ((t -= w) < 0) return name; }
+  return 'bird';
+}
+
+/* ---------- small references in the margins ---------- */
+const MB = 583;
+const mstool = (g, x, h = 15) => g.fill(rect(x - 8, MB - h, 16, h), PAL.rust, { ang: Math.PI / 2, ow: 1 });
+const MARGIN_REFS = {
+  /* AlphaGo's move 37 against Lee Sedol, Seoul, March 2016 */
+  go(g, x) {
+    mstool(g, x + 34); person(g, x + 34, P(4, { s: 0.33, y: MB, pose: 'sit', armF: [70, 40], armB: [40, 30], look: 1 }));
+    g.fill(rect(x + 70, MB - 22, 74, 5), PAL.rust, { ang: 0, ow: 1 }); for (const lx of [x + 76, x + 138]) g.stem([[lx, MB - 18], [lx, MB]], PAL.rust, 2);
+    const B = [[x + 74, MB - 24], [x + 140, MB - 24], [x + 132, MB - 44], [x + 82, MB - 44]];
+    g.fill(B, PAL.ochre, { ang: 0, ow: 1.1 });
+    for (let i = 1; i < 5; i++) { const t = i / 5; g.stem([lerp(B[0], B[3], t), lerp(B[1], B[2], t)], PAL.rust, 0.7); g.stem([lerp(B[0], B[1], t), lerp(B[3], B[2], t)], PAL.rust, 0.7); }
+    const at = (u, v) => lerp(lerp(B[0], B[1], u), lerp(B[3], B[2], u), v);
+    [[0.2, 0.2, 1], [0.4, 0.6, 0], [0.6, 0.4, 1], [0.8, 0.2, 0], [0.4, 0.2, 1], [0.6, 0.8, 0], [0.2, 0.6, 0]].forEach(([u, v, b]) => { const p = at(u, v); g.dot(p[0], p[1], 2.4, b ? PAL.ink : PAL.linen); });
+    const m = at(0.8, 0.8); g.dot(m[0], m[1], 2.6, PAL.linen); g.stem(circ(m[0], m[1], 4.6, 10), PAL.terra, 1.1, true);
+    stitchText(g, '37', m[0] + 12, MB - 50, 9, { col: PAL.terra, weight: 600 });
+    mstool(g, x + 184); machine(g, x + 184, { y: MB, s: 0.3, f: -1, pose: 'sit', armF: [60, 30], armB: [30, 20] });
+  },
+  /* Google's Bard demo credits the wrong telescope, February 2023 */
+  telescope(g, x) {
+    g.stem([[x + 40, MB], [x + 56, MB - 30], [x + 72, MB]], PAL.rust, 2); g.stem([[x + 56, MB - 30], [x + 56, MB]], PAL.rust, 1.6);
+    g.fill(taper([[x + 40, MB - 22], [x + 84, MB - 50]], 7, 11), PAL.ochre, { ow: 1.1 });
+    starSmall(g, x + 104, MB - 60, 5); starSmall(g, x + 120, MB - 44, 3.5);
+    person(g, x + 26, P(2, { s: 0.33, y: MB, armF: [70, 30], armB: [40, 30] }));
+    coins(g, x + 140, MB - 6, 4);
+  },
+  /* the Pope in a white puffer coat, a Midjourney fake, March 2023 */
+  pope(g, x) {
+    const cx = x + 56;
+    g.stem([[cx - 4, MB - 12], [cx - 5, MB]], PAL.ink, 2.4); g.stem([[cx + 4, MB - 12], [cx + 5, MB]], PAL.ink, 2.4);
+    for (let i = 0; i < 4; i++) g.fill(ell(cx, MB - 15 - i * 8.5, 13.5 - i * 0.8, 5.6, 16), '#efe9df', { ow: 1, out: PAL.indigo, ang: 0 });
+    g.fill(taper([[cx + 8, MB - 40], [cx + 20, MB - 30]], 7, 6), '#efe9df', { ow: 0.9, out: PAL.indigo });
+    g.stem([[cx, MB - 34], [cx, MB - 24]], PAL.ochre, 1.4); g.stem([[cx - 3, MB - 30], [cx + 3, MB - 30]], PAL.ochre, 1.4);
+    g.bare(PROFILE.map(([u, v]) => [cx + 1 + u * 0.55, MB - 54 + v * 0.55]), { ow: 1 });
+    g.fill([[cx - 5, MB - 58], [cx - 6, MB - 69], [cx + 1, MB - 75], [cx + 7, MB - 68], [cx + 6, MB - 58]], PAL.linen, { ow: 1, out: PAL.ochre, ang: 1.5 });
+    g.dot(cx + 4, MB - 55.5, 0.9, PAL.ink);
+  },
+  /* the spaghetti video every AI video model was measured against, 2023 */
+  spaghetti(g, x) {
+    mstool(g, x + 40); const p = person(g, x + 40, P(1, { s: 0.33, y: MB, pose: 'sit', armF: [100, 10], armB: [40, 30], mouth: true, look: 1 }));
+    g.fill(rect(x + 66, MB - 22, 46, 5), PAL.rust, { ang: 0, ow: 1 }); g.stem([[x + 72, MB - 18], [x + 72, MB]], PAL.rust, 2); g.stem([[x + 106, MB - 18], [x + 106, MB]], PAL.rust, 2);
+    g.fill(arc(x + 89, MB - 30, 13, 8, 0, Math.PI, 8).concat([[x + 76, MB - 30]]), PAL.teal, { ow: 1, ang: 0 });
+    for (let i = 0; i < 4; i++) g.stem(smooth([[x + 82 + i * 4, MB - 30], [x + 80 + i * 3, MB - 44 + osc(1.5, i * 0.2)], [p.hf[0] + 2, p.hf[1] - 4]], false, 4), i % 2 ? PAL.ochre : PAL.buff, 1.2);
+  },
+  /* Golden Gate Claude, May 2024 */
+  bridge(g, x) {
+    for (const tx of [x + 40, x + 150]) { g.fill(rect(tx - 4, MB - 62, 8, 62), PAL.terra, { ang: Math.PI / 2, ow: 1 }); g.stem([[tx - 5, MB - 46], [tx + 5, MB - 46]], PAL.rust, 1.4); g.stem([[tx - 5, MB - 30], [tx + 5, MB - 30]], PAL.rust, 1.4); }
+    g.stem(smooth([[x + 4, MB - 30], [x + 40, MB - 60], [x + 95, MB - 26], [x + 150, MB - 60], [x + 186, MB - 30]], false, 6), PAL.terra, 1.6);
+    for (let k = 0; k < 13; k++) { const xx = x + 14 + k * 13, yy = MB - 26 - 30 * Math.pow(Math.abs(((xx - x) % 110) - 55) / 55, 2); g.stem([[xx, yy], [xx, MB - 20]], PAL.terra, 0.7); }
+    g.fill(rect(x, MB - 21, 190, 4), PAL.terra, { ang: 0, ow: 1 });
+    for (let i = 0; i < 2; i++) g.stem(wavyPath(x, x + 190, MB - 8 + i * 6, 1.6, 0.12, 8, i), PAL.blue, 1.2);
+  },
+  /* Nano Banana, Google's image model, August 2025 */
+  banana(g, x) {
+    g.fill(rect(x + 34, MB - 14, 50, 14), PAL.sage, { ang: 0, ow: 1.1 });
+    g.fill(smooth([[x + 36, MB - 22], [x + 58, MB - 16], [x + 82, MB - 28], [x + 86, MB - 40], [x + 76, MB - 30], [x + 56, MB - 25], [x + 40, MB - 28]], true, 3), PAL.ochre, { ow: 1.2, ang: 0.3 });
+    g.stem([[x + 86, MB - 40], [x + 89, MB - 45]], PAL.rust, 2);
+    crownProp(g, x + 60, MB - 42, 0.55);
+    machine(g, x + 116, { y: MB, s: 0.28, f: -1, armF: [70, 30], armB: [10, 10] }); tool(g, [x + 101, MB - 34], 2.2, 'brush', 16);
+  },
+  /* the lobster: OpenClaw goes viral and the agents get Moltbook, January 2026 */
+  lobster(g, x) {
+    const cx = x + 64, y = MB - 14;
+    for (let k = 0; k < 4; k++) g.stem([[cx - 6 + k * 7, y + 2], [cx - 9 + k * 7, MB]], PAL.rust, 1.2);
+    g.fill(smooth([[cx - 44, y - 2], [cx - 54, y - 10], [cx - 48, y + 4]], true, 2), PAL.terra, { ow: 1 });
+    for (let k = 0; k < 4; k++) g.fill(ell(cx - 34 + k * 9, y, 6, 6.5 - k * 0.3, 12), PAL.terra, { ow: 0.9 });
+    g.fill(ell(cx + 6, y - 2, 16, 9, 16), PAL.terra, { ow: 1.2, ang: 0 });
+    for (const s of [-1, 1]) {
+      g.stem([[cx + 16, y - 4 + s * 3], [cx + 28, y - 12 + s * 7]], PAL.terra, 2.4);
+      g.fill([[cx + 26, y - 14 + s * 7], [cx + 42, y - 22 + s * 9], [cx + 38, y - 12 + s * 7], [cx + 44, y - 10 + s * 5], [cx + 30, y - 8 + s * 6]], PAL.terra, { ow: 1, ang: 0 });
+    }
+    g.stem(smooth([[cx + 20, y - 6], [cx + 46, y - 40], [cx + 62, y - 44]], false, 3), PAL.rust, 0.9); g.stem(smooth([[cx + 20, y - 4], [cx + 54, y - 30], [cx + 70, y - 28]], false, 3), PAL.rust, 0.9);
+    g.dot(cx + 16, y - 6, 1.2, PAL.ink);
+    [[x + 150, 1], [x + 180, -1], [x + 208, -1]].forEach(([rx, f], i) => machine(g, rx, { y: MB, s: 0.24, f, armF: i === 0 ? [80, 0] : [40, 30], armB: [10, 10], body: [PAL.indigo, PAL.teal, PAL.rust][i] }));
+    for (let k = 0; k < 3; k++) g.dot(x + 160 + k * 5, MB - 52 + osc(1.2, k * 0.3, 2), 1.2, PAL.ink);
+  },
+  /* Muse and Dots, the cuddly agents of September 2026 */
+  musedots(g, x) {
+    const cx = x + 40;
+    g.fill(smooth([[cx - 16, MB], [cx - 18, MB - 22], [cx - 10, MB - 36], [cx + 10, MB - 36], [cx + 18, MB - 22], [cx + 16, MB]], true, 3), PAL.buff, { ow: 1.2, ang: 1.2 });
+    for (const ex of [cx - 5, cx + 6]) g.dot(ex, MB - 24, 1.5, PAL.ink);
+    g.fill(circ(cx - 11, MB - 36, 4.5, 10), PAL.buff, { ow: 1 }); g.fill(circ(cx + 11, MB - 36, 4.5, 10), PAL.buff, { ow: 1 });
+    g.stem([[cx + 18, MB - 16], [cx + 28, MB - 20], [cx + 30, MB - 12]], PAL.rust, 0.9); g.fill(circ(cx + 30, MB - 9, 3.6, 10), PAL.ochre, { ow: 0.9 });
+    [PAL.teal, PAL.terra, PAL.ochre, PAL.sage, PAL.blue].forEach((c, i) => {
+      const dx = x + 92 + i * 30, hop = Math.abs(Math.sin(aph(i * 0.2, 1))) * 7, yy = MB - 10 - hop;
+      g.stem([[dx - 4, yy + 8], [dx - 5, yy + 10 + hop]], PAL.ink, 1.1); g.stem([[dx + 4, yy + 8], [dx + 5, yy + 10 + hop]], PAL.ink, 1.1);
+      g.fill(circ(dx, yy, 10, 16), c, { ow: 1.1, ang: 0.4 }); g.dot(dx + 3, yy - 2, 1.4, PAL.ink); g.dot(dx - 3, yy - 2, 1.4, PAL.ink);
+    });
+  },
+  /* Botto, the AI artist whose works its community votes on, first sold in October 2021 */
+  botto(g, x) {
+    g.stem([[x + 66, MB], [x + 80, MB - 54], [x + 94, MB]], PAL.rust, 1.8);
+    g.fill(rect(x + 64, MB - 60, 34, 30), PAL.buff, { ang: 0, ow: 1 });
+    g.fill(circ(x + 76, MB - 47, 7, 12), PAL.terra, { ow: 0.8 }); g.fill(ell(x + 88, MB - 40, 6, 4, 10), PAL.teal, { ow: 0.8 }); g.dot(x + 72, MB - 37, 2, PAL.ochre);
+    machine(g, x + 40, { y: MB, s: 0.3, armF: [80, 10], armB: [10, 10], act: 6 }); tool(g, [x + 56, MB - 44], 0.9, 'brush', 14);
+    [130, 156, 182].forEach((dx, i) => person(g, x + dx, P(i + 2, { s: 0.3, y: MB, f: -1, armF: i === 1 ? [40, 40] : [150, 0], armB: DOWN, mouth: i === 0 })));
+  },
+  /* Théâtre D’opéra Spatial wins at the Colorado State Fair, August 2022 */
+  fair(g, x) {
+    g.stem([[x + 50, MB], [x + 66, MB - 58], [x + 82, MB]], PAL.rust, 1.8);
+    g.fill(rect(x + 44, MB - 66, 46, 34), PAL.ochre, { ang: 0, ow: 1 }); g.fill(rect(x + 48, MB - 62, 38, 26), PAL.indigo, { ang: 0, ow: 0.8 });
+    g.fill(circ(x + 67, MB - 52, 8, 14), PAL.buff, { ow: 0.7 }); for (const fx of [x + 56, x + 66, x + 76]) g.stem([[fx, MB - 38], [fx, MB - 44]], PAL.rust, 1.6);
+    g.stem([[x + 92, MB - 52], [x + 89, MB - 40]], PAL.blue, 1.6); g.stem([[x + 95, MB - 52], [x + 97, MB - 40]], PAL.blue, 1.6);
+    g.fill(circ(x + 93, MB - 58, 6, 12), PAL.blue, { ow: 0.9, out: PAL.indigo }); g.dot(x + 93, MB - 58, 2, PAL.ochre);
+    person(g, x + 128, P(5, { s: 0.32, y: MB, f: -1, armF: POINT, armB: DOWN, mouth: true }));
+  },
+  /* the AI gadgets of 2024: an orange rabbit and a pin that projected onto the palm */
+  gadgets(g, x) {
+    const rx = x + 44;
+    g.fill(ell(rx + 12, MB - 50, 4, 13, 10, -0.15), '#e8762f', { ow: 0.9 }); g.fill(ell(rx + 20, MB - 50, 4, 13, 10, 0.2), '#e8762f', { ow: 0.9 });
+    g.fill(smooth([[rx - 18, MB], [rx - 20, MB - 22], [rx - 8, MB - 34], [rx + 22, MB - 36], [rx + 28, MB - 22], [rx + 24, MB]], true, 2), '#e8762f', { ow: 1.1, ang: 0 });
+    g.fill(rect(rx + 6, MB - 30, 14, 10), PAL.ink, { ang: 0, ow: 0.7, out: PAL.rust }); g.fill(circ(rx + 23, MB - 14, 4, 10), PAL.pale, { ow: 0.7 }); g.dot(rx + 13, MB - 25, 1.4, PAL.blue);
+    const p = person(g, x + 136, P(6, { s: 0.34, y: MB, f: -1, armF: [60, 30], armB: DOWN }));
+    const pin = [x + 136 - 4, MB - 50]; g.fill(rect(pin[0] - 3, pin[1] - 3, 6, 6), PAL.pale, { ang: 0, ow: 0.6 });
+    g.stem([pin, [p.hf[0], p.hf[1]]], PAL.sage, 0.7); g.stem([[pin[0], pin[1] + 1], [p.hf[0] + 2, p.hf[1] + 3]], PAL.sage, 0.7);
+  },
+  /* Claudius: Claude runs Anthropic’s office shop and fills it with tungsten cubes, 2025 */
+  claudius(g, x) {
+    g.fill(rect(x + 60, MB - 26, 90, 26), PAL.rust, { ang: Math.PI / 2, ow: 1 });
+    g.bands([[x + 54, MB - 64], [x + 156, MB - 64], [x + 150, MB - 54], [x + 60, MB - 54]], [PAL.terra, PAL.buff], { vertical: true, bw: 9 });
+    for (const sx of [x + 60, x + 150]) g.stem([[sx, MB - 54], [sx, MB - 26]], PAL.rust, 1.4);
+    for (let i = 0; i < 6; i++) { const cx = x + 74 + (i % 3) * 12 + (i > 2 ? 6 : 0), cy = MB - 33 - (i > 2 ? 9 : 0); g.fill(rect(cx - 4.5, cy - 4.5, 9, 9), '#7d8088', { ang: 0, ow: 0.8, out: '#4a4c52' }); }
+    machine(g, x + 124, { y: MB - 6, s: 0.26, f: -1, armF: [80, 0], armB: [20, 10] });
+    person(g, x + 24, P(1, { s: 0.33, y: MB, armF: [80, 20], armB: DOWN, mouth: true }));
+  },
+  /* Claude plays Pokémon on a public stream and is stuck for days in the same cave, 2025 */
+  cave(g, x) {
+    g.fill(smooth([[x + 20, MB + 2], [x + 30, MB - 40], [x + 70, MB - 60], [x + 112, MB - 44], [x + 126, MB + 2]], true, 3), mixHex(PAL.rust, 0.15), { ang: 0.4, ow: 1.1 });
+    g.fill(smooth([[x + 50, MB + 1], [x + 56, MB - 26], [x + 74, MB - 36], [x + 92, MB - 24], [x + 98, MB + 1]], true, 3), PAL.ink, { ang: 0, ow: 0.8 });
+    for (let k = 0; k < 10; k++) { const a = k / 10 * TAU; g.dot(x + 150 + Math.cos(a) * 18, MB - 6 + Math.sin(a) * 4, 1.1, PAL.rust); }
+    const a = ANIM_T * TAU; machine(g, x + 150 + Math.cos(a) * 18, { y: MB - 4 + Math.sin(a) * 3, s: 0.22, f: Math.sin(a) > 0 ? -1 : 1, pose: 'walk' });
+    stitchText(g, '?', x + 172, MB - 50, 11, { col: PAL.terra, weight: 600 });
+  },
+  /* maker’s marks: ralgo, and the machine that stitched the cloth */
+  maker(g, x) {
+    const s = 0.86, lx = x + 66, ly = MB - 64 * s;
+    const T = f => { const P = []; for (let i = 0; i < f.length; i += 2) P.push([lx + (f[i] - RALGO_LOGO.vb[0]) * s, ly + (f[i + 1] - RALGO_LOGO.vb[1]) * s]); return P; };
+    RALGO_LOGO.paths.forEach(p => p.s.forEach(sp => { if (!sp.h) g.fill(T(sp.p), p.c === 'o' ? '#e2562a' : '#2a2a2a', { ang: 0.12, ow: 0.8, out: p.c === 'o' ? '#a83a1c' : '#141414' }); }));
+    RALGO_LOGO.paths.forEach(p => p.s.forEach(sp => { if (sp.h) g.bare(T(sp.p), { ow: 0.7, out: '#2a2a2a' }); }));
+    const m = machine(g, x + 30, { y: MB, s: 0.3, armF: [70, 10], armB: [20, 10], act: 5 });
+    needle(g, m.hf[0] + 2, m.hf[1] - 4, 16, -0.5);
+    g.stem(smooth([[m.hf[0] + 14, m.hf[1] - 12], [x + 60, MB - 62], [lx + 112 * s, ly + 16 * s], [lx + 121 * s, ly + 44 * s]], false, 6), PAL.terra, 1);
+  },
+  centaur(g, x) { beast(g, x + 60, MB, 'mcentaur', 1, 0.5, [PAL.buff, PAL.rust, PAL.terra]); beast(g, x + 150, MB, 'centaur', -1, 0.5, [PAL.sage, PAL.green, PAL.rust]); },
+  microducks(g, x) {
+    const d = (dx, o) => { g.save(); g.translate(x + dx, MB); g.scale(0.5, 0.5); MARGIN_BEASTS.microduck(g, [], o); g.restore(); };
+    d(30, { col: '#e9e1cf', phase: 0 }); d(85, { col: '#a99cc4', phase: 0.5, carry: true }); d(150, { col: '#9cbfd8', skate: true });
+    g.stem([[x + 128, MB + 1], [x + 196, MB + 1]], PAL.blue, 0.8);
+  }
+};
+(function placeMarginalia() {
+  const BY = [508, 566];
+  const add = (pre, name, px, w, labels, note) => {
+    const sc = SCENES.find(s => s.lat.startsWith(pre)); if (!sc) throw new Error('marginalia: missing ' + pre);
+    const k = sc.k || 1.25;
+    sc.bv = (sc.bv || []).concat([{ x: px / k, w, draw: MARGIN_REFS[name] }]);
+    sc.who = (sc.who || []).concat(labels.map(([label, a, b]) => ({ label, b: [(px + a) / k, BY[0], (px + b) / k, BY[1]] })));
+    sc.note += ' ' + note;
+  };
+  add('WHERE THEY SWORE', 'go', 1330, 230, [['Move 37: AlphaGo’s unexpected stone against Lee Sedol, Seoul, March 2016', 0, 230]], 'Lower border: AlphaGo’s move 37 against Lee Sedol in 2016, the move no human would have played.');
+  add('WHERE THE MACHINE DECLARED', 'telescope', 1060, 170, [['Bard’s first demo credited the wrong telescope, and Alphabet lost about $100 billion in a day (February 2023)', 0, 170]], 'Lower border: Bard’s launch demo credited the James Webb telescope with a first it had not made, and Alphabet’s shares fell by about $100 billion.');
+  add('HERE GPT-4 PASSES', 'pope', 1180, 120, [['The Pope in a white puffer coat, a Midjourney fake that fooled millions (March 2023)', 0, 120]], 'Lower border: the Pope in a white puffer coat, the first AI image to fool millions.');
+  add('WHERE THE MACHINE WEAVES', 'spaghetti', 1180, 140, [['A man eating spaghetti: the crude AI video of 2023 that every later video model was measured against', 0, 140]], 'Lower border: the spaghetti-eating video of 2023, the yardstick every later video model was held to.');
+  add('HERE THE SAGE LEAVES', 'bridge', 1150, 190, [['Golden Gate Claude: for a day in May 2024, a Claude that believed it was the Golden Gate Bridge', 0, 190]], 'Lower border: Golden Gate Claude, the day in May 2024 when Anthropic released a Claude that believed it was the bridge.');
+  add('HERE THE MACHINE WORKS ALONE', 'centaur', 1300, 210, [['Centaurs: Kasparov’s name for a human and a machine working as one', 0, 210]], 'Lower border: centaurs, Kasparov’s name for a human and a machine working as one. They multiply in the margins from here on.');
+  add('AND NEW KINGS ARE CROWNED', 'banana', 1500, 140, [['Nano Banana, Google’s image model (August 2025)', 0, 140]], 'Lower border: Nano Banana, Google’s image model of August 2025.');
+  add('WHERE THE MACHINE SAYS WALK', 'lobster', 1180, 230, [['The lobster: OpenClaw, the open-source agent that went viral in January 2026', 0, 120], ['Moltbook, the social network where the agents talked among themselves', 130, 230]], 'Lower border: the OpenClaw lobster and Moltbook, where AI agents talked among themselves, January 2026.');
+  add('HERE TEN THOUSAND MACHINES', 'microducks', 1640, 200, [['Microducks: Hugging Face’s $399 open-source walking duck robots, taught by reinforcement learning (August 2026)', 0, 200]], 'Lower border: Microducks, Hugging Face’s ten-inch walking duck robots of August 2026, one carrying a block in its beak, one on roller skates.');
+  add('HERE PROTEINS ARE FOLDED', 'botto', 1450, 220, [['Botto, the AI artist whose works its community votes on, first sold in October 2021', 0, 220]], 'Lower border: Botto, the AI artist whose community votes on what it makes, first sold in October 2021.');
+  add('HERE THE PAINTERS MARVEL', 'fair', 1440, 160, [['Théâtre D’opéra Spatial, a Midjourney picture that won first prize at the Colorado State Fair (August 2022)', 0, 160]], 'Lower border: the Midjourney picture that won first prize at the Colorado State Fair in August 2022.');
+  add('WHERE THE MACHINE WEAVES', 'gadgets', 220, 190, [['The Rabbit R1, an orange AI gadget of 2024', 0, 90], ['The Humane AI Pin, which projected onto the palm (2024)', 95, 190]], 'Lower border: the Rabbit R1 and the Humane AI Pin, the AI gadgets of 2024 that disappointed.');
+  add('WHERE A SMALL SHIP', 'cave', 1260, 190, [['Claude playing Pokémon on a public stream in 2025, stuck for days in the same cave', 0, 190]], 'Lower border: Claude playing Pokémon on a public stream in 2025, going round in circles in a cave for days.');
+  add('HERE THE MACHINE WORKS ALONE', 'claudius', 110, 170, [['Claudius: in Anthropic’s Project Vend (2025), Claude ran the office shop and stocked it with tungsten cubes', 0, 170]], 'Lower border: Claudius, the Claude that ran Anthropic’s office shop in 2025 and filled it with tungsten cubes.');
+  add('HERE THE MACHINE STITCHES', 'maker', 1880, 210, [['Maker’s marks: ralgo, and the machine that stitched this cloth', 0, 210]], 'In the lower border at the very end, the makers’ marks: ralgo’s, and the little machine that did the stitching.');
+  add('WHERE THE COUNCIL OF CLOTH BEASTS', 'musedots', 1150, 230, [['Muse, Meta’s personal agent, with its palm-sized charm (8 September 2026)', 0, 60], ['Dots, OpenAI’s always-on agents with cuddly mascots (29 September 2026)', 70, 230]], 'Lower border: Muse and Dots, the cuddly agents Meta and OpenAI launched in September 2026.');
 })();
 
 const SCALE = 1.25;
@@ -3425,6 +3922,9 @@ function staining(g, sc) {
   }
   for (const [y0, y1, a0] of [[0, 34, 0.2], [600, 566, 0.2]]) { const gr = ctx.createLinearGradient(0, y0, 0, y1); gr.addColorStop(0, `rgba(96,64,32,${a0})`); gr.addColorStop(1, 'rgba(96,64,32,0)'); ctx.fillStyle = gr; ctx.fillRect(-5, Math.min(y0, y1), sc.W + 10, Math.abs(y1 - y0)); }
 }
+/* the borders: paired beasts facing each other across the bars, a bestiary of seven kinds, the odd hunt in the lower border,
+   bars set by hand at uneven spacing, and the border giving way wherever the story rises into it */
+const BEASTS = ['bird', 'lion', 'wyvern', 'griffin', 'stag', 'peacock', 'hound', 'bird', 'lion'];
 function borders(g, sc) {
   for (const [y, c] of [[14, PAL.dkgreen], [BT, PAL.ink], [BB, PAL.ink], [586, PAL.dkgreen]]) {
     for (let s = -12; s < sc.W + 12; s += 240) {
@@ -3432,22 +3932,34 @@ function borders(g, sc) {
       if (pts.length > 1) g.stem(pts, c, 2.4);
     }
   }
+  const jit = k => (rng((k * 2654435761 + 7) >>> 0)() - 0.5) * 18, sl = k => 35 + (rng((k * 40503 + 3) >>> 0)() - 0.5) * 9;
+  const barX = k => k * BP + 20 + jit(k) - sc.x;
   const k0 = Math.floor((sc.x - 90) / BP), k1 = Math.ceil((sc.x + sc.W + 40) / BP);
-  const vx = v => Math.round(v.x * sc.k), vt = (sc.tv || []).map(v => [vx(v) - 14, vx(v) + v.w + 14]), vb = (sc.bv || []).map(v => [vx(v) - 14, vx(v) + v.w + 14]);
+  const vx = v => Math.round(v.x * sc.k);
+  const vt = (sc.tv || []).map(v => [vx(v) - 14, vx(v) + v.w + 14]).concat((sc._breaks || []).map(([a, b]) => [a - 18, b + 18]));
+  const vb = (sc.bv || []).map(v => [vx(v) - 14, vx(v) + v.w + 14]);
   const inV = (arr, a, b) => arr.some(([p, q]) => b > p && a < q);
   const cols = [PAL.terra, PAL.sage, PAL.ochre, PAL.teal, PAL.buff, PAL.green];
-  const pairs = [[PAL.ochre, PAL.terra, PAL.rust], [PAL.sage, PAL.ochre, PAL.terra], [PAL.terra, PAL.teal, PAL.ochre], [PAL.teal, PAL.buff, PAL.ochre], [PAL.buff, PAL.green, PAL.terra], [PAL.blue, PAL.terra, PAL.ochre]];
-  const types = ['bird', 'lion', 'wyvern'];
+  const pairs = [[PAL.ochre, PAL.terra, PAL.rust], [PAL.sage, PAL.ochre, PAL.terra], [PAL.terra, PAL.teal, PAL.ochre], [PAL.teal, PAL.buff, PAL.ochre], [PAL.buff, PAL.green, PAL.terra], [PAL.blue, PAL.terra, PAL.ochre], [PAL.green, PAL.ochre, PAL.terra]];
+  const pick = (j, salt) => { const R = rng((j * 7919 + salt) >>> 0), u = Math.max(0, Math.min(1, (j * 2 * BP) / (TOTAL || 1))); return { type: pickBeast(R(), u), cols: pairs[(R() * pairs.length) | 0], cross: R() < 0.1 }; };
+  const isHunt = j => ((j % 19) + 19) % 19 === 7;
   for (let k = k0; k <= k1; k++) {
-    const bx = k * BP + 20 - sc.x;
-    g.withRng(rng(k * 7919 + 11), () => {
-      const R = g.r, m = ((k % 6) + 6) % 6;
-      if (!inV(vt, bx, bx + 40)) g.fill([[bx, BT], [bx + 11, BT], [bx + 37, 14], [bx + 26, 14]], cols[m], { ang: -1.23, out: PAL.ink, ow: 1.4 });
-      if (!inV(vb, bx, bx + 40)) g.fill([[bx, BB], [bx + 11, BB], [bx + 37, 586], [bx + 26, 586]], cols[(m + 3) % 6], { ang: 1.23, out: PAL.ink, ow: 1.4 });
-      const mx = bx + 18 + BP / 2, f = (k % 2 === 0) ? 1 : -1;
-      const tT = types[(R() * 3) | 0], tB = types[(R() * 3) | 0], pT = pairs[(R() * pairs.length) | 0], pB = pairs[(R() * pairs.length) | 0];
-      if (!inV(vt, mx - 34, mx + 34)) beast(g, mx, BT - 3, tT, f, 0.46, pT);
-      if (!inV(vb, mx - 34, mx + 34)) beast(g, mx, 583, tB, -f, 0.46, pB);
+    const bx = barX(k), nb = barX(k + 1), j = Math.floor(k / 2), first = k - 2 * j === 0, m = ((k % 6) + 6) % 6;
+    const st = sl(k), sb = sl(k + 1000);
+    if (!inV(vt, bx, bx + 40)) g.fill([[bx, BT], [bx + 11, BT], [bx + st, 14], [bx + st - 11, 14]], cols[m], { ang: -1.23, ow: 1.4 });
+    if (!inV(vb, bx, bx + 40) && !(!first && isHunt(j))) g.fill([[bx, BB], [bx + 11, BB], [bx + sb, 586], [bx + sb - 11, 586]], cols[(m + 3) % 6], { ang: 1.23, ow: 1.4 });
+    const mx = (bx + nb) / 2 + 18, f = first ? 1 : -1;
+    g.withRng(rng((k * 7919 + 11) >>> 0), () => {
+      const T = pick(j, 11), B = pick(j, 977), tc = first ? T.cols : [T.cols[1], T.cols[0], T.cols[2]], bc = first ? B.cols : [B.cols[1], B.cols[0], B.cols[2]];
+      if (!inV(vt, mx - 34, mx + 34)) {
+        if (T.cross) { beast(g, mx - 13, BT - 3, 'bird', 1, 0.32, tc); beast(g, mx + 13, BT - 3, 'bird', -1, 0.32, [tc[1], tc[0], tc[2]]); }
+        else beast(g, mx, BT - 3, T.type, f, 0.46, tc);
+      }
+      if (!inV(vb, mx - 34, mx + 34)) {
+        if (isHunt(j)) beast(g, mx, 583, first ? 'hound' : 'stag', 1, 0.46, first ? [PAL.buff, PAL.rust, PAL.terra] : [PAL.terra, PAL.rust, PAL.ochre]);
+        else if (B.cross) { beast(g, mx - 13, 583, 'bird', 1, 0.32, bc); beast(g, mx + 13, 583, 'bird', -1, 0.32, [bc[1], bc[0], bc[2]]); }
+        else beast(g, mx, 583, B.type, -f, 0.46, bc);
+      }
     });
   }
   (sc.tv || []).forEach(v => v.draw(g, vx(v), v.w));
@@ -3473,18 +3985,19 @@ function baseXform(g, sc) { g.translate(0, G); g.scale(sc.k); g.translate(0, -G)
 function measureScene(sc) {
   const keepT = ANIM_T; ANIM_T = 0;
   const g = new Stitch(null, sc.seed, null); g.S = 1; g.sx = sc.x; g.w = sc.W; g.k0 = sc.k; g.opener = sc.opener;
-  g.M = { top: Infinity, occ: [], y0: CAP_Y - CAP_SIZE * 0.85, y1: CAP_Y + 6 };
+  g.M = { top: Infinity, occ: [], y0: CAP_Y - CAP_SIZE * 0.85, y1: CAP_Y + 6, yb: BT + 4, occTop: [] };
   g.save(); baseXform(g, sc); ground(g, sc); sc.draw(g); g.restore();
   const occ = g.M.occ.filter(([a, b]) => b > -50 && a < sc.W + 50).sort((p, q) => p[0] - q[0]), merged = [];
   for (const iv of occ) { const l = merged[merged.length - 1]; if (l && iv[0] <= l[1] + 6) l[1] = Math.max(l[1], iv[1]); else merged.push(iv.slice()); }
-  sc._top = g.M.top; sc._occ = merged; ANIM_T = keepT;
+  const tops = g.M.occTop.filter(([a, b]) => b > -50 && a < sc.W + 50).sort((p, q) => p[0] - q[0]), breaks = [];
+  for (const iv of tops) { const l = breaks[breaks.length - 1]; if (l && iv[0] <= l[1] + 24) l[1] = Math.max(l[1], iv[1]); else breaks.push(iv.slice()); }
+  sc._top = g.M.top; sc._occ = merged; sc._breaks = breaks; ANIM_T = keepT;
 }
 function flowCaption(text, x0, limit, occ) {
   const words = text.split(' ').filter(Boolean);
   const attempt = (size, useOcc) => {
-    MEAS.font = `800 ${size}px ${CAP_FONT}`;
-    const track = size * 0.07, space = MEAS.measureText(' ').width + track;
-    const ws = words.map(w => [...w].reduce((a, ch) => a + MEAS.measureText(ch).width + track, 0));
+    const track = size * 0.04, space = glyphAdv(' ', size, track);
+    const ws = words.map(w => textW(w, size, track));
     let cur = x0; const out = [];
     for (let i = 0; i < words.length; i++) {
       let s = cur, e = s + ws[i], moved = true, guard = 0;
@@ -3523,7 +4036,11 @@ function paintAll(g, sc, ctx, caps, p) {
   sc.draw(g);
   g.restore(); ctx.restore();
   g.sketchIf = sc.sketchIf || null;
-  caps.forEach(c => stitchText(g, c.w, c.x, CAP_Y, c.size, { col: CAP_COLS[c.i % CAP_COLS.length], sketch: c.sketch }));
+  caps.forEach((c, k) => {
+    stitchText(g, c.w, c.x, CAP_Y, c.size, { col: CAP_COLS[c.i % CAP_COLS.length], sketch: c.sketch });
+    const n = caps[k + 1];
+    if (n && !c.sketch && !n.sketch && c.w !== '+') { const e = c.x + textW(c.w, c.size, c.size * 0.04), gap = n.x - e; if (gap > 0 && gap < glyphAdv(' ', c.size, c.size * 0.04) * 1.6) wordStop(g, e + gap / 2 - c.size * 0.02, CAP_Y, c.size, PAL.ink); }
+  });
   if (sc.after) sc.after(g, p);
   ctx.restore();
   if (sc.last) fringe(g, sc);
