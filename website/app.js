@@ -56,7 +56,7 @@ function syncPageMetadata(){
  window.dispatchEvent(new Event('ralgo-pageview'));
 }
 const roomOrder=['wild','order','continuum','quantum-places-lost-in-time','overgrowth','overgrowth-x8'];
-const livingOrder=['water','chromatic-turbulence'];
+const livingOrder=['temper','water','chromatic-turbulence'];
 const experimentOrder=['chimera','illuminations','creatures','fireplace','chimera-quad'];
 const verseCollections=new Set(['wild','order','continuum','quantum-places-lost-in-time','overgrowth','overgrowth-x8']);
 const verseArchives=new Set(['continuum','quantum-places-lost-in-time','overgrowth','overgrowth-x8']);
@@ -80,7 +80,7 @@ function renderHome(){
  $('total-count').textContent=data.collections.filter(c=>c.id!=='quasi').reduce((n,c)=>n+c.count,0).toLocaleString('en-GB');
  $('room-grid').innerHTML=roomOrder.map(cid=>{const c=collections.get(cid),m=meta[cid], picks=c.coverNumbers?c.coverNumbers.map(n=>c.items.find(w=>w.number===n)):[c.items[0],c.items[Math.floor(c.items.length*.46)],c.items[Math.floor(c.items.length*.78)]];return `<article class="room-card"><a class="room-cover" href="#collection/${cid}" aria-label="Explore all ${c.count} ${esc(c.title)} works">${picks.map(w=>img(w)).join('')}<span aria-hidden="true">↗</span></a><div class="room-body"><div class="room-heading"><div><span class="meta">${esc(m.kicker)}</span><h3><a href="#collection/${cid}">${esc(m.title)}</a></h3></div><span class="room-count">${c.count} works</span></div><p>${esc(m.intro)}</p><div class="room-links"><a class="underlink" href="#collection/${cid}">Explore all ${c.count} works <span>↗</span></a>${verseCollections.has(cid)?link(c.source,'View on Verse'):''}</div></div></article>`;}).join('');
  const catalogueLinks=['seasky-pairs',...roomOrder].map(cid=>{const count=cid==='seasky-pairs'?'100 pairs · 200 works':collections.get(cid).count+' works';return `<a class="index-row" href="#collection/${cid}"><span>${esc(meta[cid].title)}</span><small>${count}</small></a>`;}).join('');
- const indexWork=id=>{const w=works.find(w=>w.id===id);return `<a class="index-row" href="#live/${w.id}"><span>${esc(w.shortTitle||w.title)}</span><small>${w.live?'Enter':'View'}</small></a>`;};
+ const indexWork=id=>{const w=works.find(w=>w.id===id);return `<a class="index-row" href="${w.standalone?w.live:`#live/${w.id}`}"><span>${esc(w.shortTitle||w.title)}</span><small>${w.live?'Enter':'View'}</small></a>`;};
  $('index-list').innerHTML=`<p class="index-group-label">LATEST WORKS</p>${livingOrder.map(indexWork).join('')}<p class="index-group-label">OTHER EXPERIMENTS</p><a class="index-row" href="#experiments"><span>Other Experiments</span><small>Explore the page ↗</small></a><a class="index-row" href="/tapestry/"><span>The Machine Tapestry</span><small>The past ten years of AI</small></a><a class="index-row" href="/sage/"><span>Sage</span><small>Botto · extended by Ralgo</small></a>${experimentOrder.map(indexWork).join('')}<p class="index-group-label">RALGO COLLECTIONS</p>${catalogueLinks}<p class="index-group-label">COMPOSITIONS FROM OTHER ARTISTS’ WORK</p><a class="index-row" href="#compositions"><span>Compositions</span><small>Explore the page ↗</small></a><a class="index-row" href="/sage/"><span>Sage</span><small>Botto · extended by Ralgo</small></a>${indexWork('qql')}<a class="index-row" href="#collection/quasi"><span>Quasi Dragon Studies</span><small>Harvey Rayner · Ralgo compositions</small></a><p class="index-group-label">WRITING</p><a class="index-row" href="/blog"><span>Art & technology</span><small>Weekly briefings ↗</small></a>`;
  $('collection-select').innerHTML='<optgroup label="Ralgo collections">'+['seasky-pairs',...roomOrder,'seasky','aria'].map(cid=>`<option value="${cid}">${esc(meta[cid].title)}</option>`).join('')+'</optgroup><optgroup label="Compositions from other artists’ series"><option value="quasi">Harvey Rayner · Quasi Dragon Studies</option></optgroup>';
  renderFeature();
@@ -164,6 +164,7 @@ function liveStill(w,index=0){clearViewerStage();$('viewer-stage').className='vi
 function startLive(w){clearViewerStage();$('viewer-stage').className='viewer-stage live';stopLiveLoading=mountLiveWork($('viewer-stage'),w,()=>startLive(w));setInfo(false);}
 function openLive(id){
  const w=works.find(x=>x.id===id);if(!w)return;
+ if(w.standalone){location.assign(w.live);return;}
  const experiment=w.section==='experiments',composition=w.section==='compositions';
  activeHeading(experiment?'experiments-title':composition?'compositions-title':'home-title');
  $('home-view').hidden=experiment||composition;$('experiments-view').hidden=!experiment;$('compositions-view').hidden=!composition;$('collection-view').hidden=true;

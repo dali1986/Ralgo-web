@@ -92,6 +92,8 @@ export async function buildCollections(root) {
   }
   for(const w of works.filter(w=>w.live||w.id==='qql')){
     const path=`/works/${w.id}/`,title=w.shortTitle||w.title;
+    // Standalone artworks own their page, controls and URL hash.
+    if(w.standalone){urls.push(path);continue;}
     const picture=w.images?.[0]||shareImage;
     const sharePicture=shareCard(liveShareImage(w.id),w.images?.slice(0,1)||[],title,w.id==='qql'?'QQL by Tyler Hobbs & Dandelion Mané · Composition: Ralgo':'Ralgo · ralgo.art');
     const schema={'@type':'VisualArtwork',name:title,description:w.description,url:absolute(path),creator:w.id==='qql'?[{'@type':'Person',name:'Tyler Hobbs'},{'@type':'Person',name:'Dandelion Mané'}]:artist};

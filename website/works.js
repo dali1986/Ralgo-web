@@ -1,6 +1,23 @@
 // Ralgo exhibition metadata. Original artwork source files remain self-contained.
 export const works = [
   {
+  "id": "temper",
+  "title": "Temper",
+  "category": "Generative laboratory",
+  "section": "living",
+  "standalone": true,
+  "images": [
+    "/works/temper/og.jpg"
+  ],
+  "preview": "/works/temper/og.jpg",
+  "description": "A laboratory tests a transparent specimen until it breaks. Stress becomes colour, the pieces are swept away, and a report records the failure.",
+  "live": "/works/temper/",
+  "source": "/works/temper/",
+  "sourceLabel": "Enter Temper",
+  "credit": "Artwork and generative system by Ralgo.",
+  "extraLinks": []
+},
+  {
     "id": "chromatic-turbulence",
     "title": "Chromatic Turbulence",
     "category": "Living painting",
