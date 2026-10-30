@@ -6,6 +6,11 @@ halloweenButton.type = 'button';
 halloweenButton.id = 'new-halloween-creature';
 halloweenButton.textContent = 'New Halloween creature';
 newButton.after(halloweenButton);
+const gifButton = document.createElement('button');
+gifButton.type = 'button';
+gifButton.id = 'save-creature-gif';
+gifButton.textContent = 'Save GIF';
+saveButton.after(gifButton);
 const status = document.getElementById('creature-save-status');
 
 // Keep artwork gestures and shortcuts separate from the buttons.
@@ -40,3 +45,42 @@ function growCreature(event, halloween) {
 }
 newButton.addEventListener('click', event => growCreature(event, false));
 halloweenButton.addEventListener('click', event => growCreature(event, true));
+
+gifButton.addEventListener('click', async event => {
+  event.stopPropagation();
+  const artwork = window.OVERGROWTH;
+  if (!artwork?.recordGIF || !artwork.settled) {
+    status.textContent = 'The creature is still growing. Please try again in a moment.';
+    return;
+  }
+  if (artwork.recording) {
+    status.textContent = 'A GIF is already recording.';
+    return;
+  }
+  const buttons = Array.from(controls.querySelectorAll('button'));
+  const disabled = buttons.map(button => button.disabled);
+  buttons.forEach(button => { button.disabled = true; });
+  gifButton.textContent = 'Recording…';
+  status.textContent = 'Recording a 6-second GIF…';
+  const progress = setInterval(() => {
+    const recording = artwork.recording;
+    if (recording) {
+      const percent = Math.round(recording.i / recording.n * 100);
+      gifButton.textContent = 'Recording ' + percent + '%';
+      status.textContent = 'Recording GIF… ' + percent + '%';
+    }
+  }, 250);
+  try {
+    const result = await artwork.recordGIF({ secs: 6, fps: 20, width: 540 });
+    status.textContent = result
+      ? 'GIF ready. Check your downloads or the image tab opened by your browser.'
+      : 'GIF recording stopped. Please try again.';
+  } catch (error) {
+    status.textContent = 'Could not save the GIF. Please try again.';
+    console.error('Creature GIF export failed:', error);
+  } finally {
+    clearInterval(progress);
+    buttons.forEach((button, index) => { button.disabled = disabled[index]; });
+    gifButton.textContent = 'Save GIF';
+  }
+});
