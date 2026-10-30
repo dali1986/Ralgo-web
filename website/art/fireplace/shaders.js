@@ -119,27 +119,51 @@ float flameSheet(vec2 p,float layer,float t){
     float id=float(i),seed=hash(vec2(id+layer*7.,19.+weather.z));
     // Uneven, fixed sources in the wood. Gas pulses travel up a sheet instead
     // of stretching its entire height in synchrony like a waving ribbon.
-    float centre=(id-3.)*.252+(seed-.5)*.17;
+    // Roots wander slowly along the wood as different seams catch and fail.
+    float centre=(id-3.)*.252+(seed-.5)*.17+(noise(vec2(t*.083+seed*5.,id*3.1+layer*1.7))-.5)*.11;
     float emitted=t-y*(.78+seed*.35);
     float gas=noise(vec2(emitted*(1.25+seed*.85),id*8.3+layer*3.7+weather.z));
     float catchment=noise(vec2(t*(.21+seed*.13),id*12.4+layer+weather.z));
-    float surge=.66+gas*.45+catchment*.19;
+    // A tongue can sink to a low lick for a while, then return; the fire's
+    // outline is never the same row of peaks twice.
+    float vigour=ramp(.16,.46,noise(vec2(t*(.11+seed*.09),id*5.7+layer*2.1+40.)));
+    float surge=.55+gas*.55+catchment*catchment*.55;
     float supply=localFuel(centre)*weather.x;
-    float h=(.57+seed*.53)*heat*surge*(1.-layer*.13)*(1.+cue.y*.075)*(.65+supply*.35);
+    float h=(.57+seed*.53)*heat*surge*(1.-layer*.13)*(1.+cue.y*.075)*(.65+supply*.35)*(.64+.36*vigour);
     h+=hearthFlare(vec2(centre,0.))*.13;
     float rise=clamp(y/h,0.,1.25);
     float curl=noise(vec2(emitted*.85+id*7.,y*2.5+seed*13.));
-    float axis=centre+(curl-.5)*y*.20+(gas-.5)*y*y*.10;
-    float width=(.12+seed*.065)*(.80+catchment*.34)*pow(max(0.,1.-rise),.66)+.006;
+    float axis=centre+(curl-.5)*y*.24+(gas-.5)*y*y*.12;
+    // Each tongue swells into a belly above its root before drawing to a point.
+    float girth=(.13+seed*.07)*(.80+catchment*.34);
+    float width=girth*(.78+.22*ramp(0.,.30,rise))*pow(max(0.,1.-rise),.72)+.006;
     // Brief necks tear off into tips; the split branches are unequal.
     float fork=ramp(.29,.80,rise)*ramp(.40,.78,curl);
     float separation=fork*(.025+y*.10);
     float neck=1.-ramp(.47,.70,rise)*ramp(.92,.70,rise)*ramp(.55,.78,gas)*.48;
     width*=neck*(1.-fork*.28);
-    float tongue=max(exp(-pow((wx-axis-separation)/width,2.)*1.25),exp(-pow((wx-axis+separation*.66)/(width*.64),2.)*1.25)*(.64+fork*.22));
+    // The branches join smoothly rather than meeting in a hard crease.
+    float mainLobe=exp(-pow((wx-axis-separation)/width,2.)*1.25);
+    float sideLobe=exp(-pow((wx-axis+separation*.66)/(width*.64),2.)*1.25)*(.64+fork*.22);
+    float tongue=mainLobe+sideLobe-mainLobe*sideLobe;
     tongue*=ramp(1.06,.73,rise)*(.80+supply*.12+gas*.08);
     shape=max(shape,tongue);
+    // Pockets of burning gas pinch off the tip and rise faster than the sheet,
+    // shrinking as they go out. This is the flicker the eye reads as fire.
+    float puffClock=t*(1.05+seed*1.35)+seed*9.+layer*.37;
+    float puffAge=fract(puffClock);
+    float puffSeed=hash(vec2(floor(puffClock)+id*13.,layer*5.+weather.z));
+    float puffY=h*(.70+puffAge*(.38+puffSeed*.30));
+    float puffR=(.030+.032*puffSeed)*(1.-puffAge*.62)*(.75+supply*.25)*(.5+.5*vigour);
+    vec2 dq=vec2((wx-axis-(puffSeed-.5)*.06)/puffR,(y-puffY)/(puffR*1.9));
+    float flamelet=exp(-dot(dq,dq))*ramp(0.,.12,puffAge)*ramp(1.,.50,puffAge)*step(.40,puffSeed)*.92;
+    shape=max(shape,flamelet);
   }
+  // Low on the wood the fire runs as one rolling sheet and only parts into
+  // separate tongues as it climbs, so the hearth never reads as a row of candles.
+  float runner=noise(vec2(wx*4.6-t*.35+layer*2.3,t*.55+weather.z));
+  float bed=localFuel(wx)*weather.x*min(heat,1.15)*ramp(.16+runner*.12,.0,y)*ramp(1.0,.74,abs(wx));
+  shape=max(shape,min(1.,bed*(.74+.46*runner)));
   if(vision>.001){
     // Advection stretches the pose upward; the common flow rolls its borders.
     // Layer offsets are small enough to retain faces and gaps between limbs.
@@ -148,7 +172,23 @@ float flameSheet(vec2 p,float layer,float t){
     vec2 fieldUV=vec2(q.x/2.4+.5,q.y/1.45);
     float inside=step(0.,fieldUV.x)*step(fieldUV.x,1.)*step(0.,fieldUV.y)*step(fieldUV.y,1.);
     vec3 envelope=texture2D(thermal,fieldUV).rgb*inside;
-    float shaped=max(envelope.r,envelope.g*.92)*mix(.64,1.,(clarity-.2)/.8);
+    // Every upper edge of a figure tears into tongues: look a short, uneven
+    // distance below this point, so the shape is drawn upward in fingers that
+    // cool and thin as they climb. Letters keep shorter tongues to stay legible.
+    float qLift=log(1.+max(q.y,0.)*1.65)/1.65;
+    float tongue=noise(vec2(q.x*8.5+layer*3.7,qLift*2.6-t*2.15));
+    // Fine jitter keeps the lifted copy of a horizontal edge from stepping.
+    float ragged=noise(vec2(q.x*31.+layer*9.,qLift*14.-t*4.3));
+    // Lower clarity lets the tongues climb further; high clarity keeps them short.
+    float reach=(.03+.10*tongue*tongue)*(.55+.90*ragged)*mix(1.6,.75,clarity)*mix(1.,.40,lettering)*(1.+cue.w*.8);
+    vec2 below=vec2(0.,reach/1.45);
+    vec3 nearBelow=texture2D(thermal,fieldUV-below*.45).rgb;
+    vec3 farBelow=texture2D(thermal,fieldUV-below).rgb;
+    float licks=max(max(nearBelow.r,nearBelow.g)*.78,max(farBelow.r,farBelow.g)*.50)*ramp(.18,.75,tongue)*inside*mix(1.,.55,lettering);
+    // Inside the figure the gas still rises in fibres rather than glowing evenly.
+    float fibre=noise(vec2(q.x*23.+layer*5.3+eddy,qLift*5.-t*2.7));
+    float body=max(envelope.r,envelope.g*.92)*mix(.84+.22*fibre,.92+.10*fibre,lettering);
+    float shaped=max(body,licks)*mix(.64,1.,(clarity-.2)/.8);
     shaped=max(shaped,envelope.b*.96);
     // Keep the foreground fire burning across the scene and its openings.
     // Only the deeper sheets make much room for a figure to gather.
@@ -161,8 +201,9 @@ float flameSheet(vec2 p,float layer,float t){
   // One continuous combustion front for all the fire. Elongated, rising folds
   // open actual dark gaps, peel into tips and carry the same warm-to-pale heat.
   float lift=log(1.+y*1.65)/1.65;
-  float shred=fbm(vec2(wx*12.+large*1.8,lift*6.-t*1.85+layer*.33));
-  float small=noise(vec2(wx*43.+eddy*2.,lift*19.-t*3.9+layer*.51));
+  // Rounder rolling billows low down; the flow itself stretches them higher up.
+  float shred=fbm(vec2(wx*10.+large*1.8,lift*5.6-t*2.05+layer*.33));
+  float small=noise(vec2(wx*36.+eddy*2.,lift*17.-t*4.2+layer*.51));
   float sheet=shape-(.09+shred*1.43+eddy*.18+(small-.5)*mix(.07,.17,ramp(.10,.85,y)));
   float rim=ramp(-.04,.09,sheet);
   float core=ramp(.055,.34,sheet);
@@ -197,6 +238,14 @@ void main(){
   col+=vec3(.15,.06,.012)*actionLight*(cue.y*.65+cue.z*.16);
   float smoke=fbm(vec2(wallP.x*2.+sin(p.y*3.+t*.15)*.2,p.y*2.-t*.14));
   col+=vec3(.034,.025,.019)*smoke*back*ramp(.18,1.2,p.y)*warmth;
+  // The fire lights the room it sits in: a wide flickering wash that swells
+  // when a vision blazes, and a warm pool spilling onto the floor in front.
+  // One shared flicker, so the flames and the light they throw pulse together.
+  float flick=noise(vec2(t*6.7,2.3))*.6+noise(vec2(t*13.1,5.9))*.4;
+  float blaze=warmth*(.80+.26*flick)+vision*.42+cue.y*.30;
+  col+=vec3(.030,.013,.005)*blaze*exp(-wallP.x*wallP.x*.28-pow(wallP.y-.40,2.)*.45);
+  float floorPool=ramp(-.30,-.36,p.y)*exp(-p.x*p.x*.50)*exp((p.y+.31)*2.4);
+  col+=vec3(.050,.020,.007)*floorPool*blaze;
   float horizon=ramp(-.02,-.06,p.y);
   float hearthLight=exp(-p.x*p.x*.9)*exp(-abs(p.y+.14)*3.5)*warmth;
   col+=vec3(.09,.034,.012)*horizon*hearthLight;
@@ -205,7 +254,9 @@ void main(){
   col=mix(col,vec3(.047,.032,.025)*(stone+.4)+vec3(.075,.030,.010)*hearthLight,slab*.85);
   col+=vec3(.075,.036,.017)*exp(-abs(p.y+.24)*260.)*ramp(1.44,1.28,abs(p.x))*warmth;
   // Irregular charcoal facets, deep hot seams and tiny pale flakes of ash.
-  vec2 cp=vec2(p.x*16.,p.y*31.),ci=floor(cp),cf=fract(cp),coalCell=ci;
+  // Warping the lattice breaks the chunks into uneven sizes instead of tiles.
+  vec2 cp=vec2(p.x*15.,p.y*29.)+vec2(noise(p*vec2(9.,17.)),noise(p*vec2(11.,13.)+4.))*.95;
+  vec2 ci=floor(cp),cf=fract(cp),coalCell=ci;
   float d=3.,second=3.;vec2 nearest=vec2(0.);
   for(int a=-1;a<=1;a++){for(int b=-1;b<=1;b++){
     vec2 g=vec2(float(a),float(b));vec2 r=g+vec2(hash(ci+g),hash(ci+g+8.5))-.5-cf;
@@ -213,11 +264,18 @@ void main(){
   }}
   float coalArea=exp(-p.x*p.x*1.25)*ramp(-.22,-.16,p.y)*ramp(.105,.045,p.y);
   float seam=1.-ramp(.005,.070,second-d);
-  float emberHeat=(.29+.44*hash(coalCell+18.))*(.73+.27*noise(vec2(coalCell.x*.4+t*.16,coalCell.y)))*localFuel(p.x);
+  // Heat gathers in slow, breathing pockets. Outside them the gaps between
+  // chunks stay black, so the bed reads as charcoal rather than a glowing grid.
+  float pocket=noise(vec2(p.x*4.2+t*.028,p.y*9.+weather.z))*.72+noise(vec2(coalCell.x*.31-t*.11,coalCell.y*.5+t*.07))*.38;
+  float bedHot=ramp(.34,.76,pocket)*(.55+.45*ramp(-.20,.06,p.y))*(.40+.60*exp(-p.x*p.x*.9))*localFuel(p.x);
+  float emberHeat=(.29+.44*hash(coalCell+18.))*(.73+.27*noise(vec2(coalCell.x*.4+t*.16,coalCell.y)))*localFuel(p.x)*(.62+.50*bedHot);
   float hollow=pow(max(0.,1.-length(nearest)*1.65),2.);
   vec3 charcoal=vec3(.029,.022,.019)*(.45+hash(coalCell)*.65)*(1.-hollow*.7);
+  // Upper faces of each lump catch the flame light above them.
+  float facing=clamp(-nearest.y*1.7+.35,0.,1.)*(1.-hollow*.4);
+  charcoal+=vec3(.055,.024,.009)*facing*warmth*(.55+bedHot*.8);
   float coalFace=ramp(.52,.78,noise(coalCell*.71+vec2(t*.035,0.)))*hollow;
-  charcoal+=blackbody(emberHeat+hearthFlare(p)*.15)*(.045+seam*.86+coalFace*.22);
+  charcoal+=blackbody(emberHeat+hearthFlare(p)*.15)*(.03+seam*(.05+.70*bedHot)+coalFace*(.10+.45*bedHot));
   float ashGrain=ramp(.70,.92,noise(cp*5.))*ramp(.45,.76,hash(coalCell+30.))*(1.-seam);
   charcoal+=vec3(.17,.145,.12)*ashGrain*warmth;
   col=mix(col,charcoal,coalArea);
@@ -234,6 +292,10 @@ void main(){
     float fissure=1.-ramp(.014,.073,abs(noise(vec2(along*8.+fi*13.,across*83.+grain*.8))-.49));
     float crossCrack=1.-ramp(.009,.045,abs(noise(vec2(along*42.+fi*17.,across*12.+bark))-.52));
     float cracks=max(fissure*.57,crossCrack*ramp(.43,.72,grain))*ramp(.40,.75,bark);
+    // Char only glows where the log is actually burning: in patches, and mostly
+    // on the underside resting in the coals. The cooler top stays dark and ashen.
+    float burning=ramp(.38,.72,noise(vec2(along*2.6+fi*7.,fi*3.+t*.045)))*(.28+.72*ramp(.40,-.60,across/rad));
+    float glowing=cracks*(.18+.82*burning);
     float roundness=sqrt(max(0.,1.-pow(clamp(across/rad,-1.,1.),2.)));
     float light=clamp(roundness*.40+across/rad*.50,.03,1.)*lightBeat;
     float fuel=localFuel(p.x);
@@ -241,7 +303,7 @@ void main(){
     vec3 wood=vec3(.062,.036,.025)*(.28+grain*.6+bark*.45)*light;
     float whiteAsh=ramp(.52,.82,bark)*ramp(.36,.73,grain)*roundness;
     wood+=vec3(.14,.13,.115)*whiteAsh*(.45+light*.55);
-    wood+=blackbody(.39+burn*.33)*cracks*.56;
+    wood+=blackbody(.39+burn*.33)*glowing*.56;
     wood+=vec3(.040,.012,.003)*ramp(rad*.67,rad*.93,ld)*grain*light;
     // A local fracture brightens before a flame takes hold at the same position.
     float age=max(hearthEvent.z,0.);
@@ -262,9 +324,10 @@ void main(){
   float front=flameSheet(p+vec2(-.022,-.012),2.,t);
   float low=ramp(.52,.02,p.y);
   float breathing=.84+.16*noise(vec2(t*.8,3.1));
-  float combustion=rear*.52+middle*.32+front*.25;
+  // Roots burn hottest where the gas is richest; tips cool towards red.
+  float combustion=(rear*.52+middle*.32+front*.25)*mix(1.13,.84,ramp(.04,.95,p.y));
   // Thin foreground folds transmit the light behind them instead of flattening it.
-  vec3 flameLight=blackbody(combustion)*(.72+low*.17+cue.z*.045);
+  vec3 flameLight=blackbody(combustion)*(.72+low*.17+cue.z*.045)*(.93+.12*flick);
   flameLight+=blackbody(front*.68)*.18+blackbody(middle*.60)*.10;
   col=col*exp(-front*.14-middle*.08)+flameLight;
   // Violet-blue combustion only at the very foot of the ordinary golden fire.
@@ -347,6 +410,55 @@ void main(){
   col=vec3(1.)-exp(-col*1.10);
   col=pow(col,vec3(.88));
   col+=(hash(gl_FragCoord.xy+fract(t)*500.)-.5)*.008;
+  gl_FragColor=vec4(col,1.);
+}
+`;
+// Light scattering and hot air. The finished frame is reduced to its bright
+// parts at a quarter and an eighth of its size, softened, then laid back over
+// itself; the air above the flames bends what is seen through it.
+window.FIRE_POST_DOWN = `
+precision mediump float;
+uniform sampler2D source;
+uniform vec2 target, texel;
+uniform float threshold;
+void main(){
+  vec2 uv=gl_FragCoord.xy/target;
+  vec3 c=(texture2D(source,uv+texel*vec2(-1.,-1.)).rgb+texture2D(source,uv+texel*vec2(1.,-1.)).rgb
+    +texture2D(source,uv+texel*vec2(-1.,1.)).rgb+texture2D(source,uv+texel*vec2(1.,1.)).rgb)*.25;
+  float bright=max(c.r,max(c.g,c.b));
+  gl_FragColor=vec4(c*smoothstep(threshold,threshold+.30,bright),1.);
+}
+`;
+window.FIRE_POST_BLUR = `
+precision mediump float;
+uniform sampler2D source;
+uniform vec2 target, dir;
+void main(){
+  vec2 uv=gl_FragCoord.xy/target;
+  vec3 c=texture2D(source,uv).rgb*.2270270270;
+  c+=(texture2D(source,uv+dir*1.3846153846).rgb+texture2D(source,uv-dir*1.3846153846).rgb)*.3162162162;
+  c+=(texture2D(source,uv+dir*3.2307692308).rgb+texture2D(source,uv-dir*3.2307692308).rgb)*.0702702703;
+  gl_FragColor=vec4(c,1.);
+}
+`;
+window.FIRE_POST_COMPOSITE = `
+precision highp float;
+uniform sampler2D scene, glowNear, glowWide;
+uniform vec2 resolution;
+uniform float time, glow, haze;
+float hashp(vec2 p){vec3 q=fract(vec3(p.xyx)*.1031);q+=dot(q,q.yzx+33.33);return fract((q.x+q.y)*q.z);}
+float vnoise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hashp(i),hashp(i+vec2(1.,0.)),f.x),mix(hashp(i+vec2(0.,1.)),hashp(i+1.),f.x),f.y);}
+void main(){
+  vec2 uv=gl_FragCoord.xy/resolution;
+  // Heat rises, so the shimmer at a point depends on the fire just below it.
+  float hot=dot(texture2D(glowWide,uv-vec2(0.,.035)).rgb,vec3(.5,.35,.15));
+  vec2 q=gl_FragCoord.xy/resolution.y*vec2(34.,15.);
+  vec2 wobble=vec2(vnoise(q+vec2(0.,-time*2.6)),vnoise(q*1.3+vec2(9.,-time*3.1)))-.5;
+  vec2 bend=wobble*vec2(.0042,.0026)*haze*clamp(hot*2.2,0.,1.);
+  vec3 col=texture2D(scene,uv+bend).rgb;
+  vec3 bloom=(texture2D(glowNear,uv).rgb*.55+texture2D(glowWide,uv).rgb*.75)*glow;
+  col=1.-(1.-col)*(1.-min(bloom,vec3(1.)));
+  col+=(hashp(gl_FragCoord.xy+fract(time)*431.)-.5)*.006;
   gl_FragColor=vec4(col,1.);
 }
 `;

@@ -75,6 +75,26 @@
   function curve(points,w){c.beginPath();c.moveTo(...points[0]);for(let i=1;i<points.length;i+=3)c.bezierCurveTo(...points[i],...points[i+1],...points[i+2]);c.lineWidth=w;c.stroke();}
   function cloth(points){c.beginPath();c.moveTo(...points[0]);for(let i=1;i<points.length;i+=3)c.bezierCurveTo(...points[i],...points[i+1],...points[i+2]);c.closePath();c.fill();}
 
+  // Limbs taper from shoulder or hip to wrist or ankle. Uniform strokes read as
+  // lit tubing once the fire draws them; tapered mass reads as a body.
+  function taper(points,w0,w1){
+    const n=points.length-1;
+    for(let i=0;i<n;i++){
+      const a=points[i],b=points[i+1],wa=(w0+(w1-w0)*i/n)/2,wb=(w0+(w1-w0)*(i+1)/n)/2;
+      const dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy)||1,nx=-dy/L,ny=dx/L;
+      c.beginPath();c.moveTo(a[0]+nx*wa,a[1]+ny*wa);c.lineTo(b[0]+nx*wb,b[1]+ny*wb);c.lineTo(b[0]-nx*wb,b[1]-ny*wb);c.lineTo(a[0]-nx*wa,a[1]-ny*wa);c.closePath();c.fill();
+      c.beginPath();c.arc(a[0],a[1],wa,0,TAU);c.fill();
+    }
+    const e=points[n];c.beginPath();c.arc(e[0],e[1],w1/2,0,TAU);c.fill();
+  }
+  function taperCurve(points,w0,w1){
+    const pts=[points[0]];
+    for(let i=1;i+2<points.length;i+=3){
+      const p0=points[i-1],p1=points[i],p2=points[i+1],p3=points[i+2];
+      for(let k=1;k<=10;k++){const u=k/10,v=1-u,a=v*v*v,b=3*v*v*u,d=3*v*u*u,e=u*u*u;pts.push([a*p0[0]+b*p1[0]+d*p2[0]+e*p3[0],a*p0[1]+b*p1[1]+d*p2[1]+e*p3[1]]);}
+    }
+    taper(pts,w0,w1);
+  }
   function person(x,y,size,pose={},style='robe'){
     c.save();c.translate(x,y);c.scale(size*(pose.flip||1),size);
     const lean=pose.lean||0;
@@ -84,10 +104,10 @@
     const leftKnee=pose.lk||[-.07,.23],leftFoot=pose.lf||[-.10,0];
     const rightKnee=pose.rk||[.08,.24],rightFoot=pose.rf||[.12,0];
     // Tapered torso, articulated limbs and a head turned towards the scene.
-    path([[lean-.09,.75],[lean+.08,.75],[.062,.42],[-.06,.42]],0,true);
-    path([leftShoulder,leftElbow,leftHand],.043);
-    path([rightShoulder,rightElbow,rightHand],.043);
-    path([hip,leftKnee,leftFoot],.052);path([hip,rightKnee,rightFoot],.052);
+    path([[lean-.095,.755],[lean*.6-.085,.62],[-.066,.50],[-.068,.42],[0,.40],[.068,.42],[.066,.50],[lean*.6+.08,.62],[lean+.088,.755],[lean,.775]],0,true);
+    taper([leftShoulder,leftElbow,leftHand],.060,.030);
+    taper([rightShoulder,rightElbow,rightHand],.060,.030);
+    taper([hip,leftKnee,leftFoot],.082,.036);taper([hip,rightKnee,rightFoot],.082,.036);
     line(leftFoot,[leftFoot[0]+.065,leftFoot[1]-.006],.034);line(rightFoot,[rightFoot[0]+.065,rightFoot[1]-.006],.034);
     line([lean,.75],[lean,.85],.04);
     ellipse(lean+.007,.887,.052,.07,-.13);
@@ -171,9 +191,9 @@
     cloth([[-.08,.03],[-.37,.25],[-.54,.40+wing],[-.90,.38+wing],[-.7,.16],[-.54,-.04],[-.44,-.14],[-.31,.02],[-.19,.05],[-.07,-.06]]);
     cloth([[.05,.08],[.15,.33],[.33,.5+wing],[.67,.48+wing],[.58,.27],[.56,.07],[.62,-.09],[.36,.02],[.14,-.07],[.05,-.08]]);
     c.restore();
-    curve([[.2,.04],[-.06,-.15],[-.3,-.04],[-.45,-.25],[-.55,-.4],[-.86,-.2],[-.88,-.10]],.085);
+    taperCurve([[.2,.04],[-.06,-.15],[-.3,-.04],[-.45,-.25],[-.55,-.4],[-.86,-.2],[-.88,-.10]],.12,.022);
     ellipse(.08,.02,.16,.105,.4);
-    curve([[.12,.03],[.23,.16],[.10,.35],[.24,.36]],.075);
+    taperCurve([[.12,.03],[.23,.16],[.10,.35],[.24,.36]],.095,.06);
     cloth([[.19,.40],[.24,.45],[.34,.43],[.37,.37],[.45,.35],[.43,.30],[.34,.30],[.31,.25],[.23,.27],[.20,.30]]);
     path([[.22,.41],[.18,.52],[.27,.43]],0,true);path([[.29,.42],[.30,.51],[.33,.42]],0,true);
     path([[.04,-.015],[.2,-.16],[.3,-.21],[.19,-.2],[.08,-.15]],.024);
