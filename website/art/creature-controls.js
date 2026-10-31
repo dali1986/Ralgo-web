@@ -49,7 +49,9 @@ halloweenButton.addEventListener('click', event => growCreature(event, true));
 gifButton.addEventListener('click', async event => {
   event.stopPropagation();
   const artwork = window.OVERGROWTH;
-  if (!artwork?.recordGIF || !artwork.settled) {
+  // Living mode resets settled, but data-settled persists after initial growth.
+  const grown = artwork?.settled || document.body.hasAttribute('data-settled');
+  if (!artwork?.recordGIF || !grown) {
     status.textContent = 'The creature is still growing. Please try again in a moment.';
     return;
   }
