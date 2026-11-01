@@ -48,6 +48,7 @@ export async function buildCollections(root) {
     html=html.replace('loading="eager" fetchpriority="high"','loading="lazy"');
     html=html.replace('<h1 id="home-title">','<h2 id="home-title">').replace(/(<h2 id="home-title">[\s\S]*?)<\/h1>/,'$1</h2>');
     html=html.replace('<a class="skip" href="#living">Skip to latest works</a>','<a class="skip" href="#page-content">Skip to the artwork</a>');
+    html=html.replace('<h1 id="vw-title">','<h2 id="vw-title">').replace('Worlds</em></h1>','Worlds</em></h2>');
     return html;
   }
   async function save(path,html){const file=join(root,path,'index.html');await mkdir(dirname(file),{recursive:true});await writeFile(file,html);urls.push(path);}

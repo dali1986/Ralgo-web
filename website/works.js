@@ -1,5 +1,6 @@
 // Ralgo exhibition metadata. Original artwork source files remain self-contained.
 export const works = [
+{"id": "vulnerable-worlds", "title": "Vulnerable Worlds", "category": "Generative worlds", "section": "living", "standalone": true, "images": ["/assets/vulnerable-worlds/world.jpg"], "preview": "/assets/vulnerable-worlds/world.jpg", "description": "Every invention changes the world. Nations draw new rules from an urn and try to survive what happens when they combine.", "live": "/works/vulnerable-worlds/", "source": "/works/vulnerable-worlds/", "sourceLabel": "Enter Vulnerable Worlds", "credit": "Artwork and generative system by Ralgo.", "extraLinks": []},
   {
   "id": "temper",
   "title": "Temper",

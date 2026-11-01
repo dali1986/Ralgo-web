@@ -14,7 +14,8 @@ function enhanceLinks(){
  }
 }
 function activeHeading(id){
- for(const headingID of ['home-title','experiments-title','compositions-title','collection-title']){
+ if(id==='home-title'&&$('vw-title'))id='vw-title';
+ for(const headingID of ['vw-title','home-title','experiments-title','compositions-title','collection-title']){
   const old=$(headingID),tag=headingID===id?'H1':'H2';
   if(old&&old.tagName!==tag){const next=document.createElement(tag);next.id=old.id;next.innerHTML=old.innerHTML;old.replaceWith(next);}
  }
@@ -56,7 +57,7 @@ function syncPageMetadata(){
  window.dispatchEvent(new Event('ralgo-pageview'));
 }
 const roomOrder=['wild','order','continuum','quantum-places-lost-in-time','overgrowth','overgrowth-x8'];
-const livingOrder=['temper','water','chromatic-turbulence'];
+const livingOrder=['vulnerable-worlds','temper','water','chromatic-turbulence'];
 const experimentOrder=['chimera','illuminations','creatures','fireplace','chimera-quad'];
 const verseCollections=new Set(['wild','order','continuum','quantum-places-lost-in-time','overgrowth','overgrowth-x8']);
 const verseArchives=new Set(['continuum','quantum-places-lost-in-time','overgrowth','overgrowth-x8']);
