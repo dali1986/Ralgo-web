@@ -15,6 +15,28 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 export const output = join(root, '_site');
 await rm(output, {recursive: true, force: true});
 await cp(join(root, 'website'), output, {recursive: true});
+// Accept the artist's complete offline export without modifying its embedded code.
+const worldPath = join(output, 'works/vulnerable-worlds/index.html');
+let worldHTML = await readFile(worldPath, 'utf8');
+if (!worldHTML.includes('rel="canonical"')) {
+  const {headExtras} = await import('./page-meta.mjs');
+  const metadata = headExtras({
+    title: 'Vulnerable Worlds · Ralgo',
+    description: 'A living generative world shaped by discovery and the risk of catastrophe.',
+    path: '/works/vulnerable-worlds/',
+    imageAlt: 'Ralgo generative art'
+  });
+  if (!/<html\\b/i.test(worldHTML)) {
+    const headEnd = worldHTML.indexOf('</style>') + '</style>'.length;
+    if (headEnd < '</style>'.length) throw new Error('Vulnerable Worlds export has no style block.');
+    worldHTML = '<!doctype html><html lang="en"><head>' + worldHTML.slice(0, headEnd)
+      + metadata + '</head><body>' + worldHTML.slice(headEnd) + '</body></html>';
+  } else {
+    worldHTML = worldHTML.replace('</head>', metadata + '</head>');
+  }
+  await writeFile(worldPath, worldHTML);
+}
+
 const {buildCollections} = await import('./build-collections.mjs');
 await buildCollections(output);
 
