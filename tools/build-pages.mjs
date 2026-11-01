@@ -26,7 +26,7 @@ if (!worldHTML.includes('rel="canonical"')) {
     path: '/works/vulnerable-worlds/',
     imageAlt: 'Ralgo generative art'
   });
-  if (!/<html\\b/i.test(worldHTML)) {
+  if (!/<html\b/i.test(worldHTML)) {
     const headEnd = worldHTML.indexOf('</style>') + '</style>'.length;
     if (headEnd < '</style>'.length) throw new Error('Vulnerable Worlds export has no style block.');
     worldHTML = '<!doctype html><html lang="en"><head>' + worldHTML.slice(0, headEnd)
