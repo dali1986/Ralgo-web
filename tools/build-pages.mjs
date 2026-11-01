@@ -37,6 +37,52 @@ if (!worldHTML.includes('rel="canonical"')) {
   await writeFile(worldPath, worldHTML);
 }
 
+// Quieter exhibition defaults; preserve the uploaded original as the source.
+const quietEdits = [
+  [
+    "DUR: 11000, REST: 5500",
+    "DUR: 6500, REST: 45000"
+  ],
+  [
+    "Object.entries(SPOTS).filter(([k, d]) => { try",
+    "Object.entries(SPOTS).filter(([k, d]) => !['law', 'key', 'ledger', 'minds'].includes(k)).filter(([k, d]) => { try"
+  ],
+  [
+    "now - (W.born || 0) < 16000",
+    "now - (W.born || 0) < 45000"
+  ],
+  [
+    "BEAT.gap = 12000 + Math.random() * 5000",
+    "BEAT.gap = CFG.hud === 'detail' ? 12000 + Math.random() * 5000 : 32000 + Math.random() * 13000"
+  ],
+  [
+    "const BEAT = { last: 0, gap: 14000",
+    "const BEAT = { last: 0, gap: 35000"
+  ],
+  [
+    "(count ? 4200 : BEAT.gap)",
+    "(count ? (CFG.hud === 'detail' ? 4200 : 18000) : BEAT.gap)"
+  ],
+  [
+    "say.until = now + secs * 1000; say.prio = prio;",
+    "if (CFG.hud !== 'detail' && prio < 80 && now - (say.quietAt || -1e9) < 30000) return false;\n    say.quietAt = now;\n    say.until = now + secs * 1000; say.prio = prio;"
+  ],
+  [
+    "function showLaw(inst) {\n  if (CFG.calib) return;",
+    "function showLaw(inst) {\n  if (CFG.calib || CFG.hud !== 'detail') return;"
+  ],
+  [
+    "function ticker(html, cls, force) {\n  if (CFG.calib) return;",
+    "function ticker(html, cls, force) {\n  if (CFG.calib) return;\n  if (CFG.hud !== 'detail') {\n    const now = performance.now();\n    if (now - (TICK.quietAt || -1e9) < 24000 || STAGE.busy(0)) return;\n    TICK.quietAt = now; TICK.q.length = 0;\n  }"
+  ]
+];
+for (const [before, after] of quietEdits) {
+  if (worldHTML.split(before).length !== 2) throw new Error('Vulnerable Worlds quiet-view patch needs review: ' + before);
+  worldHTML = worldHTML.replace(before, after);
+}
+worldHTML = worldHTML.replace('</style>', "\n/* Keep the resting artwork spacious; fuller readouts remain in Detail / Controls. */\nbody:not(.detail):not(.panel) #ledger,\nbody:not(.detail):not(.panel):not(.ended) #mind,\nbody:not(.detail):not(.panel) .nl .st,\nbody:not(.detail):not(.panel):not(.spot-dials) .nl .dl { display: none !important; }\n" + '</style>');
+await writeFile(worldPath, worldHTML);
+
 const {buildCollections} = await import('./build-collections.mjs');
 await buildCollections(output);
 
