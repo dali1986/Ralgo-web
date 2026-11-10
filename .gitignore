@@ -6,6 +6,11 @@ node_modules/
 .netlify/
 
 _site/
+# Written by `npm run build` from templates/ and content/posts/
+website/index.html
+website/feed.xml
+website/blog/
+tools/blog-generated.json
 backup/
 original-sites-source/
 content/drafts/

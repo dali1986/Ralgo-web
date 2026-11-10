@@ -6,7 +6,8 @@ import {meta} from '../website/collection-meta.js';
 import {works} from '../website/works.js';
 import {routeHref} from '../website/routes.js';
 import {esc} from '../website/briefing-format.js';
-import {headExtras,absolute,artist,shareImage,siteBase} from './page-meta.mjs';
+import {headExtras,socialMeta,absolute,artist,shareImage,siteBase} from './page-meta.mjs';
+import {siteHeader} from './site-header.mjs';
 import {blogPosts} from './build-blog.mjs';
 import {collectionShareImage,workShareImage,liveShareImage} from '../website/share-card-paths.js';
 import {renderShareCards} from './build-share-cards.mjs';
@@ -52,9 +53,11 @@ export async function buildCollections(root) {
     return html;
   }
   async function save(path,html){const file=join(root,path,'index.html');await mkdir(dirname(file),{recursive:true});await writeFile(file,html);urls.push(path);}
-  const experimentsHTML=shell({title:'Other Experiments',description:'The past ten years of AI in an embroidered chronicle, plus living worlds, stories made of light, unlikely creatures and a dreaming fire. Experiments by Ralgo.',path:'/experiments/'}).replace('<main id="experiments-view" hidden>','<main id="experiments-view"><span id="page-content"></span>').replace('<h2 id="experiments-title">Other <em>Experiments</em></h2>','<h1 id="experiments-title">Other <em>Experiments</em></h1>');
+  const experimentsHTML=shell({title:'Other Experiments',description:'The past ten years of AI in an embroidered chronicle, plus living worlds, stories made of light, unlikely creatures and a dreaming fire. Experiments by Ralgo.',path:'/experiments/'}).replace('<main id="experiments-view" hidden>','<main id="experiments-view"><span id="page-content"></span>').replace('<h2 id="experiments-title">Other <em>Experiments</em></h2>','<h1 id="experiments-title">Other <em>Experiments</em></h1>').replace('<div class="live-grid"><article class="live-card tapestry-card">','<h2 class="sr-only">The experiments</h2><div class="live-grid"><article class="live-card tapestry-card">');
+  if(!experimentsHTML.includes('<h2 class="sr-only">The experiments</h2>'))throw new Error('The Experiments page lost its card grid marker.');
   await save('/experiments/',experimentsHTML);
-  const compositionsHTML=shell({title:'Compositions',description:'Sage, extending Botto’s Synaptic Whispers of Digital Awakening; Ralgo compositions from QQL by Tyler Hobbs and Dandelion Mané, and Quasi Dragon Studies by Harvey Rayner.',path:'/compositions/'}).replace('<main id="compositions-view" hidden>','<main id="compositions-view"><span id="page-content"></span>').replace('<h2 id="compositions-title">A composer’s role.<br><em>Another artist’s world.</em></h2>','<h1 id="compositions-title">A composer’s role.<br><em>Another artist’s world.</em></h1>');
+  const compositionsHTML=shell({title:'Compositions',description:'Sage, extending Botto’s Synaptic Whispers of Digital Awakening; Ralgo compositions from QQL by Tyler Hobbs and Dandelion Mané, and Quasi Dragon Studies by Harvey Rayner.',path:'/compositions/'}).replace('<main id="compositions-view" hidden>','<main id="compositions-view"><span id="page-content"></span>').replace('<h2 id="compositions-title">A composer’s role.<br><em>Another artist’s world.</em></h2>','<h1 id="compositions-title">A composer’s role.<br><em>Another artist’s world.</em></h1>').replace('<div class="dialogue-grid">','<h2 class="sr-only">The compositions</h2><div class="dialogue-grid">');
+  if(!compositionsHTML.includes('<h2 class="sr-only">The compositions</h2>'))throw new Error('The Compositions page lost its card grid marker.');
   await save('/compositions/',compositionsHTML);
   for(const [id,c] of collections){
     const m=meta[id]||{title:c.title,description:c.description||`Explore ${c.title} by Ralgo.`,kicker:'GENERATIVE ART · RALGO'};
@@ -94,7 +97,11 @@ export async function buildCollections(root) {
   for(const w of works.filter(w=>w.live||w.id==='qql')){
     const path=`/works/${w.id}/`,title=w.shortTitle||w.title;
     // Standalone artworks own their page, controls and URL hash.
-    if(w.standalone){urls.push(path);continue;}
+    if(w.standalone){
+      // Vulnerable Worlds has no card of its own; build-pages.mjs points its share tags here.
+      if(w.id==='vulnerable-worlds')shareCard(liveShareImage(w.id),w.images?.slice(0,1)||[],title);
+      urls.push(path);continue;
+    }
     const picture=w.images?.[0]||shareImage;
     const sharePicture=shareCard(liveShareImage(w.id),w.images?.slice(0,1)||[],title,w.id==='qql'?'QQL by Tyler Hobbs & Dandelion Mané · Composition: Ralgo':'Ralgo · ralgo.art');
     const schema={'@type':'VisualArtwork',name:title,description:w.description,url:absolute(path),creator:w.id==='qql'?[{'@type':'Person',name:'Tyler Hobbs'},{'@type':'Person',name:'Dandelion Mané'}]:artist};
@@ -124,10 +131,24 @@ export async function buildCollections(root) {
   // Sage is a separate p5 application, with the same first-paint protection.
   const sageFile=join(root,'sage/index.html');
   const sage=await readFile(sageFile,'utf8');
-  await writeFile(sageFile,sage.replace(/<head(?:\s[^>]*)?>/i,head=>head+'<link rel="stylesheet" href="/art-ready.css"><script src="/art-ready.js"></script>'));
+  let sageHTML=sage.replace(/<head(?:\s[^>]*)?>/i,head=>head+'<link rel="stylesheet" href="/art-ready.css"><script src="/art-ready.js"></script>');
+  if(!sageHTML.includes('property="og:title"')){
+    const sageTitle=sage.match(/<title>([^<]*)<\/title>/)?.[1],sageDescription=sage.match(/<meta name="description" content="([^"]*)">/);
+    if(!sageTitle||!sageDescription)throw new Error('Sage needs its title and description for share tags.');
+    const unescape=s=>s.replaceAll('&quot;','"').replaceAll('&#39;',"'").replaceAll('&lt;','<').replaceAll('&gt;','>').replaceAll('&amp;','&');
+    const sagePicture=shareCard(liveShareImage('sage'),['/assets/experiments/sage.webp'],'Sage','Botto’s Synaptic Whispers of Digital Awakening · Extended by Ralgo');
+    sageHTML=sageHTML.replace(sageDescription[0],sageDescription[0]+'\n'+socialMeta({title:unescape(sageTitle),description:unescape(sageDescription[1]),path:'/sage/',image:sagePicture,imageAlt:'Sage: Botto’s Synaptic Whispers of Digital Awakening, extended by Ralgo'}));
+  }
+  await writeFile(sageFile,sageHTML);
   renderShareCards(root,[...shareCards.values()]);
   const directory=[...collections.values()].filter(c=>c.id!=='aria'&&c.id!=='seasky').map(c=>`<a class="index-row" href="${collectionPath(c.id)}"><span>${esc(meta[c.id]?.title||c.title)}</span><small>${c.count} ${c.id==='seasky-pairs'?'pairs':'works'}</small></a>`).join('');
-  await writeFile(join(root,'collections/index.html'),`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Collections — Ralgo</title>${headExtras({title:'Collections — Ralgo',description:'Explore Ralgo’s complete collections and selected compositions.',path:'/collections/'})}<link rel="stylesheet" href="/styles.css"></head><body><header class="site-header"><a class="wordmark" href="/"><img src="/assets/brand/ralgo-tines-reversed.svg" alt="Ralgo" width="126" height="65"></a><nav><a href="/">Exhibition</a><a href="/blog/">Blog</a></nav></header><main class="static-directory"><p class="eyebrow">THE COLLECTION DIRECTORY</p><h1>Choose a world.</h1>${directory}</main></body></html>`);
+  await writeFile(join(root,'collections/index.html'),`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101110"><title>Collections — Ralgo</title><meta name="description" content="Explore Ralgo’s complete collections and selected compositions.">${headExtras({title:'Collections — Ralgo',description:'Explore Ralgo’s complete collections and selected compositions.',path:'/collections/'})}<link rel="stylesheet" href="/styles.css"></head><body><a class="skip" href="#directory">Skip to the collections</a>${siteHeader({current:'collections'})}<main id="directory" class="static-directory"><p class="eyebrow">THE COLLECTION DIRECTORY</p><h1>Choose a world.</h1>${directory}</main></body></html>`);
+  // Addresses from the earlier WordPress site that still turn up in search results.
+  const moved={'/seasky/':'/collections/seasky-pairs/'};
+  for(const [from,to] of Object.entries(moved)){
+    const file=join(root,from,'index.html');await mkdir(dirname(file),{recursive:true});
+    await writeFile(file,`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Moved — Ralgo</title><link rel="canonical" href="${esc(absolute(to))}"><meta http-equiv="refresh" content="0; url=${esc(siteBase+to)}"><link rel="stylesheet" href="/styles.css"></head><body><main class="static-directory"><p class="eyebrow">THIS PAGE HAS MOVED</p><a class="index-row" href="${esc(to)}"><span>Continue to its new address</span><small>↗</small></a></main></body></html>`);
+  }
   // Ordinary anchors are always useful, even before JavaScript loads.
   const {readdir}=await import('node:fs/promises');
   async function enhance(dir){for(const entry of await readdir(dir,{withFileTypes:true})){const p=join(dir,entry.name);if(entry.isDirectory()&&!['art','assets','artworks'].includes(entry.name))await enhance(p);else if(entry.isFile()&&entry.name.endsWith('.html')){let s=await readFile(p,'utf8');s=s.replace(/href="(#[^"]+)"/g,(full,route)=>/^(#collection\/|#art\/|#live\/|#home$|#living$|#collections$|#about$|#experiments$|#compositions$)/.test(route)?`href="${routeHref(route)}" data-route="${route}"`:full);s=s.replace('<body>',`<body data-site-base="${esc(siteBase)}">`);await writeFile(p,s);}}}

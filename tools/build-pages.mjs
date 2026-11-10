@@ -2,6 +2,7 @@ import {cp, readFile, writeFile, readdir, rm} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {join} from 'node:path';
 import {applyEngagement, siteSettings} from './site-engagement.mjs';
+import {siteHeader} from './site-header.mjs';
 
 // configure-pages supplies '' for a custom domain/user site, or '/repository'.
 const input = process.env.PAGES_BASE_PATH || '';
@@ -20,20 +21,29 @@ const worldPath = join(output, 'works/vulnerable-worlds/index.html');
 let worldHTML = await readFile(worldPath, 'utf8');
 if (!worldHTML.includes('rel="canonical"')) {
   const {headExtras} = await import('./page-meta.mjs');
-  const metadata = headExtras({
+  const {liveShareImage} = await import('../website/share-card-paths.js');
+  const description = 'A living generative world shaped by discovery and the risk of catastrophe.';
+  // The share card itself is rendered with the others in build-collections.mjs.
+  const metadata = `<meta name="description" content="${description}">` + headExtras({
     title: 'Vulnerable Worlds · Ralgo',
-    description: 'A living generative world shaped by discovery and the risk of catastrophe.',
+    description,
     path: '/works/vulnerable-worlds/',
-    imageAlt: 'Ralgo generative art'
+    image: liveShareImage('vulnerable-worlds'),
+    imageAlt: 'Vulnerable Worlds by Ralgo'
   });
+  // Link previews read only the start of a page, and the export embeds its typefaces
+  // in the first style block: the share tags go ahead of it, not after.
+  const ahead = html => { const at = html.search(/<style\b/i); return at < 0 ? null : html.slice(0, at) + metadata + html.slice(at); };
   if (!/<html\b/i.test(worldHTML)) {
     const headEnd = worldHTML.indexOf('</style>') + '</style>'.length;
     if (headEnd < '</style>'.length) throw new Error('Vulnerable Worlds export has no style block.');
-    worldHTML = '<!doctype html><html lang="en"><head>' + worldHTML.slice(0, headEnd)
-      + metadata + '</head><body>' + worldHTML.slice(headEnd) + '</body></html>';
+    worldHTML = '<!doctype html><html lang="en"><head>' + ahead(worldHTML.slice(0, headEnd))
+      + '</head><body>' + worldHTML.slice(headEnd) + '</body></html>';
   } else {
-    worldHTML = worldHTML.replace('</head>', metadata + '</head>');
+    worldHTML = ahead(worldHTML.slice(0, worldHTML.indexOf('</head>')))
+      ? ahead(worldHTML) : worldHTML.replace('</head>', metadata + '</head>');
   }
+  worldHTML = worldHTML.replace('<title>Vulnerable Worlds</title>', '<title>Vulnerable Worlds — Ralgo</title>');
   await writeFile(worldPath, worldHTML);
 }
 
@@ -106,7 +116,7 @@ function mapJSON(value) {
 for (const path of await files(output)) {
   if (!/\.(html|js|css|json)$/.test(path)) continue;
   const original = await readFile(path, 'utf8');
-  let text = path.endsWith('.html') ? applyEngagement(original) : original;
+  let text = path.endsWith('.html') ? applyEngagement(original).replace('<!-- SITE_HEADER -->', siteHeader()) : original;
   if (base && path.endsWith('.json')) text = JSON.stringify(mapJSON(JSON.parse(text)), null, 2) + '\n';
   if (base && path.endsWith('.html')) {
     text = text.replace(/(\b(?:href|src|poster|data-fallback|data-share-url)\s*=\s*["'])\/(?!\/)/g, '$1' + base + '/');
