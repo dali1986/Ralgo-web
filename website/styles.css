@@ -125,3 +125,5 @@ dialog{background:var(--bg);color:var(--text);border:0;padding:0}dialog::backdro
 @media(prefers-reduced-motion:reduce){.viewer-stage .live-frame,.live-loading{transition:none}}
 
 .temper-card{grid-column:1/-1}.temper-card .live-image{height:auto;aspect-ratio:1200/630}.temper-card .live-image img{display:block;width:100%;height:100%;object-fit:contain}.temper-card .live-caption h3{font-size:clamp(32px,3.6vw,56px)}
+/* Phone navigation: the same strip on every page, with full-height targets and a fade where it scrolls on. */
+@media(max-width:760px){.site-header .nav-links{gap:0 20px;padding:0 44px 0 0;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 44px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 44px),transparent)}.site-header .nav-links>a{display:flex;align-items:center;min-height:44px}html{scroll-padding-top:98px}.gallery-toolbar{top:121px}}

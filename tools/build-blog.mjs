@@ -3,6 +3,7 @@ import {fileURLToPath} from 'node:url';
 import {resolve,join} from 'node:path';
 import {esc,postCard,article} from '../website/briefing-format.js';
 import {headExtras,absolute,artist,shareImage} from './page-meta.mjs';
+import {siteHeader} from './site-header.mjs';
 
 const root=fileURLToPath(new URL('../',import.meta.url));
 const out=join(root,'website');
@@ -29,8 +30,8 @@ for(const filename of await readdir(join(root,'content/posts'))){
   posts.push(p);
 }
 posts.sort((a,b)=>b.date.localeCompare(a.date)||a.slug.localeCompare(b.slug));
-const footer='<footer class="blog-footer"><a class="wordmark" href="/"><img src="/assets/brand/ralgo-tines-reversed.svg" alt="Ralgo" width="126" height="65"></a><!-- CONTACT_FOOTER --><div><span>© Ralgo · Robert Allen</span><a href="/">Return to the exhibition ↗</a></div></footer>';
-function page(title,description,body,options={}){return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101110"><title>${esc(title)} — Ralgo</title><meta name="description" content="${esc(description)}">${headExtras({title:title+' — Ralgo',description,path:'/blog/',...options})}<link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/blog.css"></head><body><a class="skip" href="#blog-main">Skip to the briefings</a><header class="site-header"><a class="wordmark" href="/" aria-label="Ralgo home"><img src="/assets/brand/ralgo-tines-reversed.svg" alt="Ralgo" width="126" height="65"></a><span class="header-description">ART / TECHNOLOGY / IDEAS</span><nav aria-label="Main navigation"><a href="/collections/">Collections</a><a href="/blog/" aria-current="page">Blog</a><a href="/feed.xml">RSS</a></nav></header><main id="blog-main">${body}</main>${footer}</body></html>`;}
+const footer='<footer class="blog-footer"><a class="wordmark" href="/"><img src="/assets/brand/ralgo-tines-reversed.svg" alt="Ralgo" width="126" height="65"></a><!-- CONTACT_FOOTER --><div><span>© Ralgo · Robert Allen</span><a href="/feed.xml">RSS feed ↗</a><a href="/">Return to the exhibition ↗</a></div></footer>';
+function page(title,description,body,options={}){return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101110"><title>${esc(title)} — Ralgo</title><meta name="description" content="${esc(description)}">${headExtras({title:title+' — Ralgo',description,path:'/blog/',...options})}<link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/blog.css"></head><body><a class="skip" href="#blog-main">Skip to the briefings</a>${siteHeader({current:'blog',tagline:'ART / TECHNOLOGY / IDEAS'})}<main id="blog-main">${body}</main>${footer}</body></html>`;}
 function cards(items){return items.map(postCard).join('');}
 const previousPath=join(root,'tools/blog-generated.json');
 let previous=[];try{previous=JSON.parse(await readFile(previousPath,'utf8'));}catch(error){if(error.code!=='ENOENT')throw error;}

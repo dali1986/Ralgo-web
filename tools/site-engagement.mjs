@@ -19,7 +19,7 @@ export const siteSettings = validateSettings(JSON.parse(await readFile(new URL('
 function contact(email, location) {
   if (!email) return '';
   const href = 'mailto:' + encodeURIComponent(email).replaceAll('%40', '@');
-  return `<section class="contact-note contact-${location}" aria-label="Contact Ralgo"><p>Commissions, exhibitions and press enquiries.</p><a class="underlink" href="${esc(href)}" data-contact-location="${location}">${esc(email)} <span aria-hidden="true">↗</span></a></section>`;
+  return `<section class="contact-note contact-${location}" aria-label="${location === 'footer' ? 'Contact, page footer' : 'Contact Ralgo'}"><p>Commissions, exhibitions and press enquiries.</p><a class="underlink" href="${esc(href)}" data-contact-location="${location}">${esc(email)} <span aria-hidden="true">↗</span></a></section>`;
 }
 
 export function applyEngagement(html, settings = siteSettings) {
