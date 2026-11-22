@@ -1,7 +1,7 @@
 import {readFile,writeFile,readdir,mkdir,rm} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {resolve,join} from 'node:path';
-import {esc,postCard,article} from '../website/briefing-format.js';
+import {esc,postCard,postRow,article} from '../website/briefing-format.js';
 import {headExtras,absolute,artist,shareImage} from './page-meta.mjs';
 import {siteHeader} from './site-header.mjs';
 
@@ -31,7 +31,7 @@ for(const filename of await readdir(join(root,'content/posts'))){
 }
 posts.sort((a,b)=>b.date.localeCompare(a.date)||a.slug.localeCompare(b.slug));
 const footer='<footer class="blog-footer"><a class="wordmark" href="/"><img src="/assets/brand/ralgo-tines-reversed.svg" alt="Ralgo" width="126" height="65"></a><!-- CONTACT_FOOTER --><div><span>© Ralgo · Robert Allen</span><a href="/feed.xml">RSS feed ↗</a><a href="/">Return to the exhibition ↗</a></div></footer>';
-function page(title,description,body,options={}){return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101110"><title>${esc(title)} — Ralgo</title><meta name="description" content="${esc(description)}">${headExtras({title:title+' — Ralgo',description,path:'/blog/',...options})}<link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/blog.css"></head><body><a class="skip" href="#blog-main">Skip to the briefings</a>${siteHeader({current:'blog',tagline:'ART / TECHNOLOGY / IDEAS'})}<main id="blog-main">${body}</main>${footer}</body></html>`;}
+function page(title,description,body,options={}){return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101110"><title>${esc(title)} — Ralgo</title><meta name="description" content="${esc(description)}">${headExtras({title:title+' — Ralgo',description,path:'/blog/',...options})}<link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/blog.css"></head><body><a class="skip" href="#blog-main">Skip to the briefings</a>${siteHeader({current:'blog'})}<main id="blog-main">${body}</main>${footer}</body></html>`;}
 function cards(items){return items.map(postCard).join('');}
 const previousPath=join(root,'tools/blog-generated.json');
 let previous=[];try{previous=JSON.parse(await readFile(previousPath,'utf8'));}catch(error){if(error.code!=='ENOENT')throw error;}
@@ -45,7 +45,8 @@ for(const post of posts){
 const template=await readFile(join(root,'templates/home.html'),'utf8');
 const pattern=/<div id="home-briefings">[\s\S]*?<\/div>/;
 if(!pattern.test(template))throw Error('The homepage template needs its home-briefings container.');
-const home=template.replace(pattern,`<div id="home-briefings" class="post-grid home-post-grid">${cards(posts.slice(0,3))}</div>`).replace('<!-- SITE_META -->',headExtras({title:'Ralgo · Art that is still happening',description:'Painterly seas, strange worlds and unlikely creatures. Generative art by Ralgo, exploring what happens when a system makes room for chance.',schema:{'@type':'WebSite',name:'Ralgo',url:absolute('/'),creator:artist}}));
+// The homepage shows the three newest briefings as rows; with none published, the template's invitation stays.
+const home=template.replace(pattern,found=>posts.length?`<div id="home-briefings" class="hp-rows">${posts.slice(0,3).map(postRow).join('')}</div>`:found.replace('<div id="home-briefings">','<div id="home-briefings" class="hp-rows">')).replace('<!-- SITE_META -->',headExtras({title:'Ralgo · Art that is still happening',description:'Painterly seas, strange worlds and unlikely creatures. Generative art by Ralgo, exploring what happens when a system makes room for chance.',schema:{'@type':'WebSite',name:'Ralgo',url:absolute('/'),creator:artist}}));
 await writeFile(join(out,'index.html'),home);
 await writeFile(join(out,'feed.xml'),`<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Ralgo: Art &amp; technology</title><link>${esc(absolute('/blog/'))}</link><description>Art and technology briefings from Ralgo.</description><language>en-gb</language><atom:link href="${esc(absolute('/feed.xml'))}" rel="self" type="application/rss+xml"/>${posts.map(p=>`<item><title>${esc(p.title)}</title><link>${esc(absolute('/blog/'+p.slug+'/'))}</link><guid isPermaLink="true">${esc(absolute('/blog/'+p.slug+'/'))}</guid><pubDate>${new Date(p.date+'T10:00:00Z').toUTCString()}</pubDate><description>${esc(p.excerpt)}</description></item>`).join('')}</channel></rss>\n`);
 export const blogPosts = posts;
