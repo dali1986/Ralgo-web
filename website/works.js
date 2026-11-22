@@ -23,13 +23,15 @@ export const works = [
     "title": "Chromatic Turbulence",
     "category": "Living painting",
     "section": "living",
-    "images": [],
+    "images": [
+      "/assets/display/chromatic-turbulence-2048.webp"
+    ],
     "description": "A painting in constant motion. Flowing pigments, layered marks and changing textures move through palettes inspired by different painters, accompanied by an evolving musical score.",
     "live": "/art/chromatic-turbulence.html",
     "source": "/art/chromatic-turbulence.html",
     "sourceLabel": "Open Chromatic Turbulence separately",
     "extraLinks": [],
-    "credit": "Artwork and generative system by Ralgo."
+    "credit": "Artwork and generative system by Ralgo. The exhibition image is a captured moment from the evolving work."
   },
   {
     "id": "chimera",

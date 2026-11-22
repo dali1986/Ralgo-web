@@ -36,8 +36,9 @@ The build reads `PAGES_BASE_PATH` for sites served from a repository subfolder, 
 | File | Purpose |
 | --- | --- |
 | `templates/home.html` | Homepage layout and text, plus the Experiments and Compositions views |
-| `website/styles.css` | Exhibition styling |
-| `website/vulnerable-worlds.css` | The opening Vulnerable Worlds section |
+| `website/styles.css` | Shared styling: typeface, header, galleries, viewer |
+| `website/home.css` | The homepage sections, from the Vulnerable Worlds hero to the footer |
+| `website/vulnerable-worlds.js` | The player for the two Vulnerable Worlds films |
 | `website/blog.css` | Briefing archive and article styling |
 | `website/app.js` | Galleries, pairing, collection order and viewer |
 | `website/works.js` | Featured artwork descriptions and interactive links |
@@ -45,13 +46,24 @@ The build reads `PAGES_BASE_PATH` for sites served from a repository subfolder, 
 | `website/data/catalogue.json` | All collection items, names and Seasky/Aria pairings |
 | `website/art/`, `website/works/` | The living works themselves |
 | `website/assets/` | Featured images, films and brand marks |
+| `website/assets/display/` | Homepage stills and covers. The build gives each a versioned filename |
+| `website/assets/fonts/` | Fraunces, the heading typeface, with its licence |
 | `website/artworks/` | Cached collection previews |
 | `website/404.html` | The not-found page |
 | `content/posts/` | Briefings in Markdown |
 | `tools/site-header.mjs` | The header used by the blog, the collection directory and the not-found page |
 | `tools/build-*.mjs` | The page builders |
 
-The homepage keeps its own copy of the navigation in `templates/home.html`, because it also carries the work index button. If you change the links, change them in both places.
+The homepage keeps its own copy of the navigation in `templates/home.html`, because its links are routes inside the exhibition. If you change the links, change them in both places. The work index opens from the footer of the homepage, Experiments and Compositions (any button with `data-index-open`).
+
+### Change what the homepage features
+
+Everything on the homepage is written out in `templates/home.html`, in page order: hero, films, Works, Seasky & Aria, Collections, Writing, About.
+
+- **Works:** six slots and no more: one wide lead, a pair, then a row of three. Each work is one `<a class="hp-work">` block with its image, label, title and sentence, and every block has the same shape, so a block can be moved from one slot to another as it is. The block that sits on its own above the pair is the lead. To feature a new work, put its block in a slot and move the one it replaces to the Experiments view further down the same file; everything not in the six lives there.
+- **Seasky & Aria pairs:** three `<a class="hp-pair">` blocks. The Aria for each Seasky is listed in `website/data/catalogue.json`.
+- **Collections:** the three large cards are written in the template. To feature a different collection, change a card and the `featuredCollections` list at the top of `website/app.js`. Every other collection appears automatically as a row beneath them.
+- **Writing:** the three newest briefings, filled in by the build.
 
 ## Add a briefing
 
